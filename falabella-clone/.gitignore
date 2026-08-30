@@ -1,0 +1,21 @@
+# Falabella clone — .gitignore
+# Excluye dependencias del template y temporales de trabajo que no son codigo fuente.
+
+# Chunks de Next.js del template original (regenerables, pesados ~14MB)
+fala_files/
+_fala_files/
+
+# Archivos temporales de trabajo (scraping, diagnostico, generacion)
+_*.js
+_*.mjs
+_shot_*.png
+*.tmp
+descarga_fallidos.txt
+skus.txt
+
+# Datos crudos intermedios del scrape (el producto final es products.json)
+catalogo_real.json
+data_raw_productos.json
+
+# Node
+node_modules/

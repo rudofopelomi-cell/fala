@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es-CO">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout | Falabella.com</title>
+  <link rel="stylesheet" href="/fala_files/landingWhite.css">
+  <link rel="stylesheet" href="/fala_files/594a0f80b944351e.css">
+  <link rel="stylesheet" href="/fala_files/3c3c7064f19802a1.css">
+  <link rel="stylesheet" href="/fala_files/451642d22d162d62.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+  <div id="cabecera" class="cabecera"></div>
+
+  <main class="contenido">
+    <h1 class="titulo-pagina">Finalizar Compra</h1>
+    <div id="requiere-login"></div>
+    <div id="checkout-cuerpo" style="display:none;">
+      <div class="checkout-cols">
+        <div class="checkout-form">
+          <form id="form-checkout" novalidate>
+            <h3 style="margin:0 0 14px;font-size:18px;">Datos de despacho</h3>
+            <div class="grupo"><label>Nombre completo</label><input type="text" id="c-nombre" required placeholder="Nombre y apellido"></div>
+            <div class="grupo"><label>Correo electrónico</label><input type="email" id="c-email" required placeholder="tucorreo@ejemplo.com"></div>
+            <div class="grupo"><label>Dirección</label><input type="text" id="c-direccion" required placeholder="Calle 123 # 45 - 67"></div>
+            <div class="grupo"><label>Ciudad</label><input type="text" id="c-ciudad" required placeholder="Bogotá"></div>
+            <div class="grupo"><label>Teléfono</label><input type="tel" id="c-tel" required placeholder="300 000 0000"></div>
+
+            <h3 style="margin:20px 0 14px;font-size:18px;">Medio de pago</h3>
+
+            <div class="metodo-pago" data-metodo="tarjeta">
+              <label class="cab-mp">
+                <input type="radio" name="metodo" value="tarjeta" checked>
+                <span>💳 Tarjeta de crédito o débito</span>
+              </label>
+              <div class="panel-mp visible">
+                <div class="tarjetas"><span>Visa</span><span>Mastercard</span><span>American Express</span><span>Diners</span></div>
+                <div class="grupo"><label>Número de tarjeta</label><input type="text" id="p-numero" placeholder="1234 5678 9012 3456" maxlength="19"></div>
+                <div class="grupo"><label>Titular</label><input type="text" id="p-titular" placeholder="Como figura en la tarjeta"></div>
+                <div style="display:flex;gap:12px;">
+                  <div class="grupo" style="flex:1;"><label>Vencimiento</label><input type="text" id="p-venc" placeholder="MM/AA" maxlength="5"></div>
+                  <div class="grupo" style="flex:1;"><label>CVV</label><input type="password" id="p-cvv" placeholder="123" maxlength="4"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="metodo-pago" data-metodo="pse">
+              <label class="cab-mp">
+                <input type="radio" name="metodo" value="pse">
+                <span>🏦 PSE - Débito bancario</span>
+              </label>
+              <div class="panel-mp">
+                <div class="grupo"><label>Banco</label>
+                  <select id="p-banco">
+                    <option>Selecciona tu banco</option>
+                    <option>Bancolombia</option>
+                    <option>Davivienda</option>
+                    <option>Banco de Bogotá</option>
+                    <option>BBVA</option>
+                    <option>Nequi</option>
+                    <option>Daviplata</option>
+                  </select>
+                </div>
+                <div class="grupo"><label>Tipo de documento</label>
+                  <select id="p-tipodoc"><option>Cédula de ciudadanía</option><option>Cédula de extranjería</option><option>NIT</option></select>
+                </div>
+                <div class="grupo"><label>Número de documento</label><input type="text" id="p-doc" placeholder="Documento"></div>
+              </div>
+            </div>
+
+            <div class="metodo-pago" data-metodo="contra">
+              <label class="cab-mp">
+                <input type="radio" name="metodo" value="contra">
+                <span>💵 Contra entrega</span>
+              </label>
+              <div class="panel-mp">
+                <p style="font-size:13px;color:#555;">Paga en efectivo al recibir tu pedido. Disponible en ciudades principales.</p>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-pagar" style="margin-top:18px;">Confirmar pedido</button>
+            <div class="mensaje-ok" id="checkout-msg"></div>
+          </form>
+        </div>
+
+        <div id="checkout-resumen" class="checkout-resumen"></div>
+      </div>
+    </div>
+  </main>
+
+  <div id="pie" class="pie"></div>
+
+  <script src="js/carrito.js"></script>
+  <script src="js/cuenta.js"></script>
+  <script src="js/include.js"></script>
+  <script src="js/checkout.js"></script>
+</body>
+</html>
