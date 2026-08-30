@@ -50,7 +50,95 @@ img, video, iframe, svg {
   height: auto !important;
 }
 
-/* ---------- 6. MEDIA QUERIES MOVIL ---------- */
+/* ---------- APPENDIX — COMPONENTES DEL HOME ---------- */
+
+/* BLOQUE DE CATEGORIAS rapidas (RichText, el user lo marco descompuesto).
+   React monta DOS arboles segun viewport: en >=576 usa `desktop-rich-text`
+   con <ul class="... outfit-font"> y <li style="width:111px"> inline;
+   en <576 monta `mobile-rich-text` con <ul class="... row-cols-5"> y
+   <li class="p-2">. Ambos fallan sin el CSS de Bootstrap: los items se
+   anclan al ancho natural de la imagen (208px) por `flex:0 0 auto` + la
+   clase Bootstrap row-cols-* no aplica. Fix: grid responsive propio usando
+   flex-basis (vencedor real del ancho de contenido en flex items), con
+   breakpoints consistentes: 5 cols >=992, 4 cols 576-991, 3 cols 421-575,
+   2 cols <=420. Aplica a AMBOS arboles (outfit-font y row-cols-5). */
+#main-RichText-746058d5-d6c5-4f12-abf6-e7b4a3d5a486 ul.outfit-font {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 10px;
+    justify-content: center;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0;
+    list-style: none;
+}
+#main-RichText-746058d5-d6c5-4f12-abf6-e7b4a3d5a486 ul.outfit-font > li {
+    width: auto !important;
+    flex: 0 0 18% !important;   /* flex-basis controla el ancho real (vence el de la imagen) */
+    flex-basis: 18% !important;
+    box-sizing: border-box;
+    padding: 4px;
+}
+#main-RichText-746058d5-d6c5-4f12-abf6-e7b4a3d5a486 ul.outfit-font a {
+    display: block;
+    text-decoration: none;
+    text-align: center;
+}
+#main-RichText-746058d5-d6c5-4f12-abf6-e7b4a3d5a486 ul.outfit-font img {
+    width: 100% !important;
+    height: auto !important;
+    object-fit: contain;
+    display: block;
+    border-radius: 6px;
+}
+#main-RichText-746058d5-d6c5-4f12-abf6-e7b4a3d5a486 ul.outfit-font p {
+    margin: 6px 0 0;
+    font-size: 0.8rem;
+    line-height: 1.1rem;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* VERSION MOVIL (mobile-rich-text): <ul row-cols-5> <li class="p-2"> */
+#main-RichText-746058d5-d6c5-4f12-abf6-e7b4a3d5a486 ul.row-cols-5 {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px;
+    justify-content: center;
+    margin: 0 auto;
+    max-width: 100%;
+    padding: 0;
+}
+#main-RichText-746058d5-d6c5-4f12-abf6-e7b4a3d5a486 ul.row-cols-5 > li {
+    flex: 0 0 20% !important;
+    flex-basis: 20% !important;
+    width: 20% !important;
+    box-sizing: border-box;
+    padding: 2px !important;
+}
+#main-RichText-746058d5-d6c5-4f12-abf6-e7b4a3d5a486 ul.row-cols-5 a { display: block; text-decoration: none; text-align: center; }
+#main-RichText-746058d5-d6c5-4f12-abf6-e7b4a3d5a486 ul.row-cols-5 img {
+    width: 100% !important; height: auto !important; object-fit: contain; display: block; border-radius: 6px;
+}
+#main-RichText-746058d5-d6c5-4f12-abf6-e7b4a3d5a486 ul.row-cols-5 p {
+    margin: 6px 0 0; font-size: 0.8rem; line-height: 1.1rem; text-align: center; white-space: nowrap;
+}
+/* Desktop >=992: 5 cols (2 filas de 5) */
+/* Tablet 576-991: 4 cols (2-3 filas) */
+@media (max-width: 991px) {
+    #main-RichText-746058d5-d6c5-4f12-abf6-e7b4a3d5a486 ul.outfit-font > li { flex-basis: 23% !important; flex: 0 0 23% !important; }
+    #main-RichText-746058d5-d6c5-4f12-abf6-e7b4a3d5a486 ul.row-cols-5 > li { flex-basis: 23% !important; flex: 0 0 23% !important; width: 23% !important; }
+}
+/* Movil grande 421-575: 3 cols */
+@media (max-width: 575px) {
+    #main-RichText-746058d5-d6c5-4f12-abf6-e7b4a3d5a486 ul.outfit-font > li { flex-basis: 30% !important; flex: 0 0 30% !important; }
+    #main-RichText-746058d5-d6c5-4f12-abf6-e7b4a3d5a486 ul.row-cols-5 > li { flex-basis: 30% !important; flex: 0 0 30% !important; width: 30% !important; }
+}
+/* Movil pequeno <=420: 2 cols */
+@media (max-width: 420px) {
+    #main-RichText-746058d5-d6c5-4f12-abf6-e7b4a3d5a486 ul.outfit-font > li { flex-basis: 45% !important; flex: 0 0 45% !important; }
+    #main-RichText-746058d5-d6c5-4f12-abf6-e7b4a3d5a486 ul.row-cols-5 > li { flex-basis: 45% !important; flex: 0 0 45% !important; width: 45% !important; }
+}
 @media (max-width: 480px) {
   /* Reducir padding excesivo de los bloques SEO en movil */
   [class*="SEOTextstyle__SEOTextContainer"] { padding-left: 13px !important; padding-right: 13px !important; }
