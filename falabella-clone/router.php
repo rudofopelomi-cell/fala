@@ -35,5 +35,14 @@ if ($uri === '/' || $uri === '/index.html') {
     }
 }
 
-// 3) Resto de archivos -> servir tal cual (php -S construido por defecto)
+// 3) CSS dinamico del template que NO existe en disco (ej. /css/falabella/landingWhite.css)
+//    -> si el archivo no esta, devolver 200 con CSS vacio para evitar errores de consola.
+//    (Los .css reales en fala_files/ se sirven por el return false de abajo.)
+if (preg_match('/\.css$/i', $uri) && !is_file(__DIR__ . $uri)) {
+    header('Content-Type: text/css; charset=utf-8');
+    header('Content-Length: 0');
+    return true;
+}
+
+// 4) Resto de archivos -> servir tal cual (php -S construido por defecto)
 return false;

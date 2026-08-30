@@ -1,0 +1,71 @@
+/* ============================================================
+   FALABELLA CLONE — Fixes responsive del index.html (home real)
+   NO rediseña. Solo organiza/compacta componentes y corrige
+   errores de CSS y overflows detectados en diagnostico.
+   Se carga DESPUES de los css modules de fala_files para
+   ganar en cascada. Solo aplica arreglos, no cambia identidad.
+   ============================================================ */
+
+/* ---------- 1. CORREGIR OVERFLOW HORIZONTAL GLOBAL ----------
+   Causa detectada: bloques SEO (SEOBlock/SEOText) con width fijo
+   ~389px dentro de un GridWrapper flex, sobrepasando el viewport
+   en movil (375 -> 391/383). La pagina no debe desplazarse en X. */
+html, body { overflow-x: clip !important; }
+
+/* ---------- 2. BLOQUES SEO: que se adapten al ancho ----------
+   Los bloques SEO desbordaban 63px. Se les obliga a caber en el
+   contenedor (max-width 100%) y ser fluidos, sin tocar su estilo. */
+[class*="SEOBlockstyle__SEOBlock"],
+[class*="SEOTextstyle__BlockWrapper"],
+[class*="Gridstyle__GridWrapper"],
+[class*="SEOTextstyle__SEOTextContainer"],
+[class*="BaseTemplate_seo"] {
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+/* Columnas internas del SEO y texto */
+[class*="SEOTextstyle__BlockWrapper"] [class*="column"],
+[class*="SEOBlockstyle__BlockContent"] {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* ---------- 3. FOOTER fijo (desktop) ----------
+   El Footer fijo de 1488px sobresalia 2px en 1440. Max-width 100%. */
+.Footer-module_footer-bottom__tP8X- {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+/* ---------- 4. CARRUSELES / CONTENEDORES FLEX ----------
+   Evitar que grids flex con hijos de ancho fijo desborden. */
+[class*="carousel" i], [class*="Carousel" i] {
+  overflow-x: hidden !important;
+}
+
+/* ---------- 5. IMAGENES Y MEDIA fluidos ---------- */
+img, video, iframe, svg {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+/* ---------- 6. MEDIA QUERIES MOVIL ---------- */
+@media (max-width: 480px) {
+  /* Reducir padding excesivo de los bloques SEO en movil */
+  [class*="SEOTextstyle__SEOTextContainer"] { padding-left: 13px !important; padding-right: 13px !important; }
+  /* Asegurar que el header/menus no generen desborde */
+  [class*="header" i], [class*="Header" i] { max-width: 100vw !important; overflow-x: hidden !important; }
+  /* SEARCHBAR del header: width:359px content-box + padding -> 383px desbordaba 16px en movil.
+     Se corrige el box-sizing para que el padding cuente dentro del 100% y quepa. */
+  [class*="SearchBar-module_searchBarWrapper"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  [class*="SearchBar-module_searchBar__"] {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}

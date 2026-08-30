@@ -9,6 +9,7 @@ _fala_files/
 _*.js
 _*.mjs
 _shot_*.png
+_diag_*.png
 *.tmp
 descarga_fallidos.txt
 skus.txt
