@@ -268,8 +268,30 @@
     del: function (id) { CARRITO = CARRITO.filter(x => x.id !== id); guardarCarrito(); actualizarFAB(); if (location.hash.includes('/basket') || location.pathname.includes('/basket')) renderCarrito(); },
     checkout: abrirCheckout,
   };
+  /* ---------- FAB de carrito flotante (acceso rápido a pagar) ---------- */
+  function crearFAB() {
+    if (document.getElementById('fb-fab')) return;
+    const fab = document.createElement('button');
+    fab.id = 'fb-fab';
+    fab.type = 'button';
+    fab.title = 'Ver carrito y pagar';
+    fab.innerHTML = '<span class="fb-fab-ico">🛒</span><span class="fb-fab-n" id="fb-fab-n">0</span><span class="fb-fab-total" id="fb-fab-total"></span>';
+    fab.addEventListener('click', function () { window.__fb.irAPagar && window.__fb.irAPagar(); });
+    document.body.appendChild(fab);
+    actualizarFAB();
+  }
   function actualizarFAB() {
     const n = CARRITO.reduce((a, b) => a + b.cant, 0);
+    const fab = document.getElementById('fb-fab');
+    if (fab) {
+      fab.style.display = n > 0 ? 'flex' : 'none';
+      const nn = document.getElementById('fb-fab-n'); if (nn) nn.textContent = n;
+      const tt = document.getElementById('fb-fab-total');
+      if (tt) {
+        const sub = CARRITO.reduce((a, b) => a + (b.precio || 0) * b.cant, 0);
+        tt.textContent = sub > 0 ? fmt(sub + Math.round(sub * 0.19)) : '';
+      }
+    }
     // contador nativo del header real de Falabella (index)
     const nativo = document.querySelector('.UserActions-module_has-count-desktop__RAhhE');
     if (nativo) nativo.textContent = n;
@@ -416,16 +438,32 @@
     pintarPanelCarrito();
   };
 
-  /* ---------- TOAST ---------- */
+  /* ---------- TOAST (notificación de producto agregado, más visible) ---------- */
   function toast(txt, ok) {
-    const el = $('#fb-toast'); el.textContent = txt; el.classList.remove('fb-ok');
+    let el = $('#fb-toast');
+    // Construir contenido con ícono + texto + botón de acción (si ok = producto agregado)
+    const ico = ok ? '✅' : 'ℹ️';
+    let accion = '';
+    if (ok) {
+      accion = '<button class="fb-toast-accion" onclick="window.__fb.irAPagar()">🛒 Ver carrito</button>';
+    }
+    el.innerHTML = '<span class="fb-toast-ico">' + ico + '</span><span class="fb-toast-txt">' + txt + '</span>' + accion;
+    el.classList.remove('fb-ok');
     if (ok) el.classList.add('fb-ok');
-    el.classList.add('fb-show'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('fb-show'), 2200);
+    el.classList.add('fb-show'); clearTimeout(el._t);
+    el._t = setTimeout(() => { el.classList.remove('fb-show'); }, 3200);
   }
+  window.__fb.irAPagar = function () {
+    if (!CARRITO.length) { toast('Tu carrito está vacío'); return; }
+    try { window.__fb.cerrarPanel && window.__fb.cerrarPanel(); } catch (e) {}
+    window.__fb.checkout();
+  };
 
   /* ---------- INYECTAR UI ---------- */
   function inyectarUI() {
     window.addEventListener('hashchange', navigate);
+    // FAB de carrito flotante (visible cuando hay productos, acceso directo a pagar)
+    crearFAB();
     // El header REAL del index ya trae su contador de carrito nativo
     // (UserActions-module_has-count-desktop__RAhhE). Nos aseguramos de poder
     // actualizarlo y, si NO existe (shell minimal), inyectamos un badge propio

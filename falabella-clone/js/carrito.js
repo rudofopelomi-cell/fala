@@ -33,6 +33,8 @@
     }
     guardar();
     notificar();
+    // Mostrar toast de confirmación de producto agregado (más visible)
+    try { mostrarToastAgregado(producto); } catch (e) {}
     return true;
   }
 
@@ -86,8 +88,66 @@
     subtotal: subtotal,
     formatear: formatear,
     obtener: function () { return items.slice(); },
+    mostrarToast: mostrarToastAgregado,
   };
+
+  /* ---------- Toast de producto agregado (más visible, con botón) ---------- */
+  function getToast() {
+    var el = document.getElementById('fb-toast');
+    if (el) return el;
+    el = document.createElement('div');
+    el.id = 'fb-toast';
+    document.body.appendChild(el);
+    return el;
+  }
+  function mostrarToastAgregado(producto) {
+    var el = getToast();
+    var nombre = (producto && producto.nombre) ? producto.nombre : 'Producto agregado';
+    el.innerHTML = '<span class="fb-toast-ico">✅</span><span class="fb-toast-txt">' + escaparHtml(nombre) + '</span>' +
+      '<button class="fb-toast-accion" onclick="window.FalabellaCarrito.verCarrito()">🛒 Ver carrito</button>';
+    el.classList.add('fb-ok');
+    el.classList.add('fb-show');
+    clearTimeout(el._t);
+    el._t = setTimeout(function () { el.classList.remove('fb-show'); }, 3200);
+  }
+  function escaparHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  window.FalabellaCarrito.verCarrito = function () { location.href = 'carrito.html'; };
+
+  /* ---------- FAB flotante de carrito (acceso a pagar) ---------- */
+  function crearFAB() {
+    if (document.getElementById('fb-fab')) return;
+    var fab = document.createElement('button');
+    fab.id = 'fb-fab';
+    fab.type = 'button';
+    fab.title = 'Ver carrito y pagar';
+    fab.innerHTML = '<span class="fb-fab-ico">🛒</span><span class="fb-fab-n" id="fb-fab-n">0</span><span class="fb-fab-total" id="fb-fab-total"></span>';
+    fab.addEventListener('click', function () { window.FalabellaCarrito.verCarrito(); });
+    document.body.appendChild(fab);
+  }
+  function actualizarFAB() {
+    crearFAB();
+    var fab = document.getElementById('fb-fab');
+    if (!fab) return;
+    var n = totalItems();
+    fab.style.display = n > 0 ? 'flex' : 'none';
+    var nn = document.getElementById('fb-fab-n'); if (nn) nn.textContent = n;
+    var tt = document.getElementById('fb-fab-total'); if (tt) tt.textContent = subtotal() > 0 ? formatear(subtotal()) : '';
+  }
+  // Actualizar FAB en cada cambio
+  var _origNotificar = notificar;
+  notificar = function () {
+    _origNotificar.call(null);
+    try { actualizarFAB(); } catch (e) {}
+  };
+  // Crear FAB al cargar
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', actualizarFAB);
+  else actualizarFAB();
 
   // Inicializar lectura
   leerDelStorage();
+  actualizarFAB();
 })();

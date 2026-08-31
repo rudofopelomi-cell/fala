@@ -312,6 +312,51 @@
 }
 #fb-panel .fb-tab.fb-act { color: #7EA300; border-bottom-color: #AAD500; }
 
+/* ---------- Toast de producto agregado: más visible + botón de acción ---------- */
+#fb-toast {
+  position: fixed;
+  bottom: 26px; left: 50%; transform: translateX(-50%) translateY(120px);
+  background: #ffffff; color: #343E49;
+  border: 2px solid #AAD500; border-left: 6px solid #AAD500;
+  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  padding: 12px 18px; border-radius: 12px;
+  font-size: 14px; font-family: Lato, Arial, sans-serif;
+  z-index: 100001; transition: transform .35s cubic-bezier(.2,.9,.3,1.2); opacity: 0;
+  display: flex; align-items: center; gap: 12px; max-width: 92vw;
+}
+#fb-toast.fb-show { transform: translateX(-50%) translateY(0); opacity: 1; }
+#fb-toast .fb-toast-ico { font-size: 22px; }
+#fb-toast .fb-toast-txt { font-weight: 700; color: #343E49; line-height: 1.25; }
+#fb-toast .fb-toast-accion {
+  background: #AAD500; color: #fff; border: none; border-radius: 6px;
+  font-weight: 800; font-size: 13px; font-family: Lato, Arial, sans-serif;
+  padding: 9px 14px; cursor: pointer; white-space: nowrap;
+  transition: background .15s;
+}
+#fb-toast .fb-toast-accion:hover { background: #7EA300; }
+@media (max-width: 520px) {
+  #fb-toast { flex-wrap: wrap; justify-content: center; text-align: center; }
+}
+
+/* ---------- FAB de carrito: más visible, con total + contador ---------- */
+#fb-fab {
+  position: fixed; bottom: 20px; right: 20px; z-index: 99995;
+  background: #AAD500; color: #fff; border: none; border-radius: 46px;
+  padding: 0 20px; height: 58px; cursor: pointer;
+  display: flex; align-items: center; gap: 10px;
+  font-family: Lato, Arial, sans-serif; font-weight: 800; font-size: 15px;
+  box-shadow: 0 6px 20px rgba(122, 163, 0, .5);
+  transition: transform .15s, background .15s;
+}
+#fb-fab:hover { background: #7EA300; transform: translateY(-2px); }
+#fb-fab .fb-fab-ico { font-size: 22px; line-height: 1; }
+#fb-fab .fb-fab-n {
+  background: #EB0045; color: #fff; min-width: 24px; height: 24px;
+  border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800; padding: 0 5px;
+}
+#fb-fab .fb-fab-total { font-size: 15px; }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 640px) {
   .fb-carrito-wrap, .carrito-contenido { flex-direction: column; }
