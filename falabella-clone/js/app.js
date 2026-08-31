@@ -229,14 +229,14 @@
     pintarCarritoDet($('#fb-cart-det'));
   }
   function pintarCarritoDet(el, enPanel) {
-    let html = '<div class="fb-cart-lista">';
+    let html = '<div class="fb-carrito-wrap"><div class="fb-carrito-lista">';
     let sub = 0;
     for (const item of CARRITO) {
       const p = PRODUCTOS.find(x => x.id === item.id) || item;
       sub += p.precio * item.cant;
-      html += '<div class="fb-cart-item"><img src="'+p.imagen+'" alt=""><div class="fb-ci-info"><div class="fb-ci-nombre">'+esc(p.nombre)+'</div><div class="fb-ci-precio">'+fmt(p.precio)+'</div>' +
+      html += '<div class="fb-cart-item"><img src="'+p.imagen+'" alt=""><div class="fb-ci-info"><div class="fb-ci-nombre">'+esc(p.nombre)+'</div><div class="fb-ci-precio">'+fmt(p.precio)+' c/u</div>' +
         '<div class="fb-qty"><button onclick="window.__fb.qty(\''+p.id+'\',-1)">−</button><span>'+item.cant+'</span><button onclick="window.__fb.qty(\''+p.id+'\',1)">+</button></div></div>' +
-        '<button class="fb-cart-del" onclick="window.__fb.del(\''+p.id+'\')">✕</button></div>';
+        '<button class="fb-cart-del" onclick="window.__fb.del(\''+p.id+'\')">Eliminar</button></div>';
     }
     const iva = Math.round(sub * 0.19);
     const total = sub + iva;
@@ -244,8 +244,8 @@
       '<div class="fb-row"><span>Subtotal</span><span>'+fmt(sub)+'</span></div>' +
       '<div class="fb-row"><span>IVA (19%)</span><span>'+fmt(iva)+'</span></div>' +
       '<div class="fb-row"><span>Envío</span><span>Gratis</span></div>' +
-      '<div class="fb-row fb-total"><span>Total</span><span>'+fmt(total)+'</span></div></div>' +
-      '<button class="fb-btn" onclick="window.__fb.checkout()">Comprar — '+fmt(total)+'</button>';
+      '<div class="fb-row fb-total"><span>Total</span><span>'+fmt(total)+'</span></div>' +
+      '<button class="fb-btn" onclick="window.__fb.checkout()">Ir a pagar — '+fmt(total)+'</button></div></div>';
     el.innerHTML = html;
   }
 
@@ -321,12 +321,14 @@
         '<div class="fb-row"><span>Subtotal</span><span>'+fmt(sub)+'</span></div>' +
         '<div class="fb-row"><span>IVA (19%)</span><span>'+fmt(iva)+'</span></div>' +
         '<div class="fb-row fb-total"><span>Total a pagar</span><span>'+fmt(total)+'</span></div></div>' +
-      '<h3 style="margin:16px 0 8px;font-size:16px;">Método de pago</h3>' +
+      '<h3 style="margin:18px 0 8px;font-size:16px;">Método de pago</h3>' +
       '<div class="fb-pay-tabs">' +
         '<button class="fb-pay-tab fb-act" data-p="tarjeta" onclick="window.__fb.payTab(this)">💳 Tarjeta</button>' +
       '</div><div id="fb-pay-form" class="fb-form"></div>' +
-      '<div class="fb-co-datos" style="margin-top:14px;"><h3 style="font-size:15px;margin-bottom:6px;">Datos de entrega</h3>' +
-      '<label>Nombre completo</label><input id="fb-nombre" placeholder="Tu nombre"><label>Teléfono</label><input id="fb-tel" placeholder="300 123 4567"><label>Dirección (opcional)</label><input id="fb-dir" placeholder="Calle, casa, barrio, ciudad"></div>' +
+      '<div class="fb-co-datos"><h3>Datos de entrega</h3>' +
+      '<div class="fb-row2"><div><label>Nombre completo</label><input id="fb-nombre" placeholder="Tu nombre"></div>' +
+      '<div><label>Teléfono</label><input id="fb-tel" placeholder="300 123 4567"></div></div>' +
+      '<label>Dirección (opcional)</label><input id="fb-dir" placeholder="Calle, casa, barrio, ciudad"></div>' +
       '<button class="fb-btn" id="fb-pagar" onclick="window.__fb.pagar()">Pagar '+fmt(total)+'</button>' +
       '<div id="fb-pay-msg"></div></div>';
     window.__fb.payForm('tarjeta');
@@ -339,7 +341,7 @@
     f.innerHTML = '<label>Número de tarjeta</label><input id="fb-cardnum" placeholder="0000 0000 0000 0000" maxlength="19" oninput="this.value=this.value.replace(/[^0-9 ]/g,\'\')">' +
       '<div class="fb-row2"><div><label>Expira (MM/AA)</label><input id="fb-cardexp" placeholder="MM/AA" maxlength="5"></div>' +
       '<div><label>CVV</label><input id="fb-cardcvv" placeholder="123" maxlength="4" type="password"></div></div>' +
-      '<p class="fb-co-pago">Aceptamos tarjetas Visa, Mastercard, Amex y débito. Pago 100% seguro y simulado.</p>';
+      '<p class="fb-co-pago">🔒 Aceptamos tarjetas Visa, Mastercard, Amex y débito. Pago 100% seguro y simulado.</p>';
   };
   window.__fb.pagar = function () {
     const metodo = $('.fb-pay-tab.fb-act') ? $('.fb-pay-tab.fb-act').dataset.p : 'tarjeta';
@@ -347,15 +349,15 @@
     const tel = $('#fb-tel') ? $('#fb-tel').value.trim() : '';
     const dir = $('#fb-dir') ? $('#fb-dir').value.trim() : '';
     const msg = $('#fb-pay-msg');
-    if (!nombre) { msg.innerHTML = '<p style="color:#c33">Ingresa tu nombre completo.</p>'; return; }
-    if (!tel) { msg.innerHTML = '<p style="color:#c33">Ingresa tu teléfono.</p>'; return; }
+    if (!nombre) { msg.innerHTML = '<p class="hc-err">Ingresa tu nombre completo.</p>'; return; }
+    if (!tel) { msg.innerHTML = '<p class="hc-err">Ingresa tu teléfono.</p>'; return; }
     // Validación de tarjeta (único método)
     const num = $('#fb-cardnum') ? $('#fb-cardnum').value.replace(/\s/g, '') : '';
     const exp = $('#fb-cardexp') ? $('#fb-cardexp').value : '';
     const cvv = $('#fb-cardcvv') ? $('#fb-cardcvv').value : '';
-    if (num.length < 15) { msg.innerHTML = '<p style="color:#c33">Número de tarjeta inválido.</p>'; return; }
-    if (!/^\d{2}\/\d{2}$/.test(exp)) { msg.innerHTML = '<p style="color:#c33">Formato de expiración MM/AA.</p>'; return; }
-    if (cvv.length < 3) { msg.innerHTML = '<p style="color:#c33">CVV inválido.</p>'; return; }
+    if (num.length < 15) { msg.innerHTML = '<p class="hc-err">Número de tarjeta inválido.</p>'; return; }
+    if (!/^\d{2}\/\d{2}$/.test(exp)) { msg.innerHTML = '<p class="hc-err">Formato de expiración MM/AA.</p>'; return; }
+    if (cvv.length < 3) { msg.innerHTML = '<p class="hc-err">CVV inválido.</p>'; return; }
     const subTotal = CARRITO.reduce((a, b) => a + (b.precio || 0) * b.cant, 0);
     // Notificar al bot: persona a punto de pagar (método de pago ingresado)
     try {
@@ -366,16 +368,16 @@
       }).catch(function () {});
     } catch (e) {}
     // procesar orden
-    msg.innerHTML = '<p style="color:var(--fb-ok)">⏳ Procesando pago...</p>';
+    msg.innerHTML = '<p class="hc-ok">⏳ Procesando pago...</p>';
     setTimeout(() => {
       const orden = 'FAL-' + Date.now().toString(36).toUpperCase() + '-' + Math.floor(Math.random() * 900 + 100);
       const sub = CARRITO.reduce((a, b) => a + (b.precio || 0) * b.cant, 0);
       const total = sub + Math.round(sub * 0.19);
-      msg.innerHTML = '<div style="text-align:center;padding:10px 0;"><div style="font-size:40px;">✅</div>' +
-        '<h2 style="margin:6px 0;color:var(--fb-ok);">¡Pago aprobado!</h2>' +
+      msg.innerHTML = '<div class="hc-exito"><div style="font-size:42px;">✅</div>' +
+        '<h2>¡Pago aprobado!</h2>' +
         '<p>Número de orden: <b>'+orden+'</b></p>' +
         '<p>Método: <b>TARJETA</b></p>' +
-        '<p>Total pagado: <b style="color:var(--fb-rojo)">'+fmt(total)+'</b></p></div>';
+        '<p>Total pagado: <b class="hc-total">'+fmt(total)+'</b></p></div>';
       // Notificar al bot: pago confirmado
       try {
         fetch('/api/notify-order', {

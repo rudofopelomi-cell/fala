@@ -12,9 +12,9 @@
 
     if (!items.length) {
       cont.innerHTML = '<div class="carrito-vacio">' +
-        '<h2 style="font-size:22px;margin-bottom:10px;">Tu carrito está vacío</h2>' +
+        '<h2>Tu carrito está vacío</h2>' +
         '<p>Explora la tienda y agrega productos.</p>' +
-        '<a href="tienda.html" style="display:inline-block;margin-top:16px;padding:12px 24px;background:#AAD500;color:#fff;border-radius:6px;font-weight:700;text-decoration:none;">Ir a la tienda</a>' +
+        '<a href="tienda.html" class="hc-btn">Ir a la tienda</a>' +
         '</div>';
       // actualizar badge
       carrito.notificar && carrito.notificar();
@@ -40,15 +40,14 @@
     }).join('');
 
     var subtotalTotal = carrito.subtotal();
-    var envio = items.length ? 0 : 0;
-    var total = subtotalTotal + envio;
+    var total = subtotalTotal;
 
     cont.innerHTML = '<div class="carrito-contenido">' +
       '<div class="carrito-items">' + filas +
-      '<div style="text-align:right;margin-top:14px;"><button id="vaciar-carrito" class="btn-secundario" style="padding:8px 16px;border:1px solid #d3d3d3;border-radius:6px;background:#fff;cursor:pointer;color:#EB0045;font-size:13px;">Vaciar carrito</button></div>' +
+      '<div style="text-align:right;margin-top:14px;"><button id="vaciar-carrito" class="hc-vaciar">Vaciar carrito</button></div>' +
       '</div>' +
       '<div class="resumen">' +
-      '<h3>Resumen</h3>' +
+      '<h3>Resumen de compra</h3>' +
       '<div class="fila"><span>Subtotal (' + carrito.totalItems() + ' productos)</span><span>' + carrito.formatear(subtotalTotal) + '</span></div>' +
       '<div class="fila"><span>Envío</span><span>Gratis</span></div>' +
       '<div class="fila total"><span>Total</span><span>' + carrito.formatear(total) + '</span></div>' +
