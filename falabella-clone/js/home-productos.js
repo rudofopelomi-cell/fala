@@ -11,145 +11,14 @@
   const JSON_URL = './productos_falabella.json';
   const SPA_BASE = '/falabella-co/product';
 
-  // Estilos que se inyectan para las cards de producto
-  const STYLES = `
-  <style id="home-productos-styles">
-    /* Sección propia de productos (reemplaza los esqueletos) */
-    .hp-section {
-      width: 100%;
-      max-width: 1440px;
-      margin: 24px auto;
-      padding: 0 16px;
-      box-sizing: border-box;
-      font-family: Lato, Arial, sans-serif;
-    }
-    .hp-section h2 {
-      font-size: 28px;
-      font-weight: 700;
-      color: #343E49;
-      margin: 24px 8px 16px;
-      letter-spacing: -0.3px;
-    }
-    .hp-section .hp-subtitle {
-      font-size: 14px;
-      color: #68717D;
-      margin: -8px 8px 20px;
-      font-weight: 400;
-    }
-    .hp-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 16px;
-      padding: 8px;
-    }
-    .hp-card {
-      background: #fff;
-      border-radius: 8px;
-      overflow: hidden;
-      cursor: pointer;
-      transition: box-shadow .2s ease, transform .15s ease;
-      border: 1px solid #EEEEEE;
-      display: flex;
-      flex-direction: column;
-      text-decoration: none;
-      color: inherit;
-    }
-    .hp-card:hover {
-      box-shadow: 0 6px 20px rgba(0,0,0,.10);
-      transform: translateY(-3px);
-    }
-    .hp-card-image {
-      width: 100%;
-      aspect-ratio: 1;
-      background: #F7F7F7;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      position: relative;
-    }
-    .hp-card-image img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform .25s ease;
-    }
-    .hp-card:hover .hp-card-image img {
-      transform: scale(1.05);
-    }
-    .hp-card-body {
-      padding: 12px 14px 16px;
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-    }
-    .hp-card-brand {
-      font-size: 12px;
-      font-weight: 700;
-      color: #495867;
-      text-transform: uppercase;
-      letter-spacing: .4px;
-      margin-bottom: 4px;
-    }
-    .hp-card-name {
-      font-size: 14px;
-      color: #343E49;
-      line-height: 1.4;
-      margin: 0 0 10px;
-      font-weight: 400;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      min-height: 39px;
-    }
-    .hp-card-price {
-      font-size: 18px;
-      font-weight: 700;
-      color: #343E49;
-      margin-top: auto;
-    }
-    .hp-card-old-price {
-      font-size: 13px;
-      color: #B0B6BD;
-      text-decoration: line-through;
-      font-weight: 400;
-    }
-    .hp-card-discount {
-      position: absolute;
-      top: 8px;
-      left: 8px;
-      background: #AAD500;
-      color: #fff;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 4px;
-      z-index: 2;
-    }
-    /* Oculta los card-grid vacíos (esqueletos) hasta rellenarlos */
-    .hp-section .hp-more {
-      text-align: center;
-      margin: 20px 0 8px;
-    }
-    .hp-section .hp-more a {
-      display: inline-block;
-      background: #fff;
-      color: #343E49;
-      border: 2px solid #343E49;
-      padding: 10px 32px;
-      border-radius: 50px;
-      font-size: 14px;
-      font-weight: 700;
-      text-decoration: none;
-      transition: all .2s ease;
-    }
-    .hp-section .hp-more a:hover {
-      background: #343E49;
-      color: #fff;
-    }
-  </style>
-  `;
+  // Cargar el CSS compartido de cards (css/productos.css) si no está ya cargado
+  function cargarCSS(url) {
+    if ([...document.querySelectorAll('link[rel="stylesheet"]')].some(l => l.href && l.href.includes('productos.css'))) return;
+    const l = document.createElement('link');
+    l.rel = 'stylesheet';
+    l.href = url;
+    document.head.appendChild(l);
+  }
 
   // Formatear precio COP
   function fmtCOP(n) {
@@ -195,8 +64,8 @@
     </a>`;
   }
 
-  // Insertar estilos en el head
-  document.head.insertAdjacentHTML('beforeend', STYLES);
+  // Insertar estilos en el head (CSS compartido externo)
+  cargarCSS('/css/productos.css');
 
   // Cargar productos y rellenar
   function cargar() {

@@ -25,23 +25,26 @@
     var cont = document.getElementById('filtros');
     if (!cont) return;
     var cats = ['todas'].concat(Array.from(new Set(productos.map(function (p) { return p.categoria; }))).sort());
+    cont.className = 'hp-filtros';
     cont.innerHTML = cats.map(function (c) {
       var nombre = c === 'todas' ? 'Todas' : c;
-      var cls = (CATEGORIA_ACTIVA === c) ? 'chip activo' : 'chip';
-      if (c === 'todas') cls += ' todos';
+      var cls = (CATEGORIA_ACTIVA === c) ? 'hp-chip activo' : 'hp-chip';
       return '<button class="' + cls + '" data-cat="' + escapar(c) + '">' + escapar(nombre) + '</button>';
     }).join('');
-    cont.querySelectorAll('.chip').forEach(function (btn) {
+    cont.querySelectorAll('.hp-chip').forEach(function (btn) {
       btn.addEventListener('click', function () {
         CATEGORIA_ACTIVA = btn.getAttribute('data-cat');
-        cont.querySelectorAll('.chip').forEach(function (b) {
-          b.className = (b.getAttribute('data-cat') === 'todas') ? 'chip todos' : 'chip';
+        cont.querySelectorAll('.hp-chip').forEach(function (b) {
+          b.className = 'hp-chip' + (b.getAttribute('data-cat') === CATEGORIA_ACTIVA ? ' activo' : '');
         });
-        if (CATEGORIA_ACTIVA === 'todas') btn.className = 'chip todos activo';
-        else btn.className = 'chip activo';
         dibujarProductos(productos);
       });
     });
+  }
+
+  function extraerMarca(nombre) {
+    var m = String(nombre || '').match(/^([A-ZÀ-ÿ][A-ZÀ-ÿ0-9&\s]{0,20})(?=\s|$)/i);
+    return m ? m[1].trim() : '';
   }
 
   function dibujarProductos(productos) {
@@ -55,23 +58,30 @@
     if (contador) contador.textContent = filtrados.length + ' producto' + (filtrados.length !== 1 ? 's' : '') + ' (' + CATEGORIA_ACTIVA + ')';
 
     if (!filtrados.length) {
-      grid.innerHTML = '<p style="color:#6b6b6b;grid-column:1/-1;text-align:center;padding:40px 0;">No hay productos en esta categoría.</p>';
+      grid.innerHTML = '<div class="hp-vacio">No hay productos en esta categoría.</div>';
       return;
     }
 
+    // Estética hp-card (misma que el index / SPA)
+    grid.className = 'hp-grid';
     grid.innerHTML = filtrados.map(function (p) {
-      var precioTarjeta = p.precioTarjeta ? '<div class="precio-tarjeta">' + escapar(p.precioTarjeta) + ' <span style="font-size:11px;">(Tarjeta CMR)</span></div>' : '';
-      var original = p.precioOriginal ? '<span class="precio-original">' + escapar(p.precioOriginal) + '</span>' : '';
-      var desc = p.descuento ? '<span class="descuento">-' + escapar(p.descuento) + '</span>' : '';
-      return '<div class="card-producto" data-id="' + escapar(p.id) + '">' +
-        '<div class="img-wrap"><img src="' + escapar(p.imagen) + '" alt="' + escapar(p.nombre) + '" loading="lazy" onerror="this.onerror=null;this.src=\'/assets/productos/placeholder.svg\'"></div>' +
-        '<div class="info">' +
-        (p.marca ? '<div class="marca">' + escapar(p.marca) + '</div>' : '') +
-        '<div class="nombre">' + escapar(p.nombre) + '</div>' +
-        '<div><span class="precio">' + escapar(p.precio) + '</span>' + desc + '</div>' +
-        original + precioTarjeta +
-        '<button class="btn-agregar" data-agregar="' + escapar(p.id) + '">Agregar al carrito</button>' +
-        '</div></div>';
+      var desc = p.descuento ? '<span class="hp-card-discount">-' + escapar(String(p.descuento).replace('%','')) + '%</span>' : '';
+      var old = p.precioOriginal ? '<div class="hp-card-old-price">' + escapar(p.precioOriginal) + '</div>' : '';
+      var link = p.link || '#';
+      return '<div class="hp-card">' +
+        '<a class="hp-card-link" href="' + escapar(link) + '" style="display:flex;flex-direction:column;flex:1;text-decoration:none;color:inherit;">' +
+          '<div class="hp-card-image">' + desc +
+            '<img src="' + escapar(p.imagen) + '" alt="' + escapar(p.nombre) + '" loading="lazy" onerror="this.parentElement.style.display=\'none\'">' +
+          '</div>' +
+          '<div class="hp-card-body">' +
+            '<div class="hp-card-brand">' + escapar(p.marca || extraerMarca(p.nombre)) + '</div>' +
+            '<div class="hp-card-name">' + escapar(p.nombre) + '</div>' +
+            old +
+            '<div class="hp-card-price">' + escapar(p.precio) + '</div>' +
+          '</div>' +
+        '</a>' +
+        '<button class="hp-card-add" data-agregar="' + escapar(p.id) + '">Agregar al carrito</button>' +
+      '</div>';
     }).join('');
 
     grid.querySelectorAll('[data-agregar]').forEach(function (btn) {

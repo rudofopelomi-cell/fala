@@ -74,13 +74,13 @@
       return;
     }
     // /falabella-co o /falabella-co/ -> tienda completa
-    root.innerHTML = '<div class="fb-st"><h1>Tienda local</h1><p class="fb-st-sub">Catálogo integrado desde falabella.com.co — '+PRODUCTOS.length+' productos disponibles.</p>' +
-      '<input class="fb-search" id="fb-buscar" placeholder="Buscar productos..."><div class="fb-filtros" id="fb-filtros"></div><div class="fb-grid" id="fb-home-grid"></div></div>';
+    root.innerHTML = '<div class="hp-container"><h1 style="font-size:28px;color:#343E49;margin:20px 8px 6px;">Tienda local</h1><p class="hp-subtitle" style="margin:0 8px 16px;">Catálogo integrado desde falabella.com.co · '+PRODUCTOS.length+' productos disponibles.</p>' +
+      '<input class="fb-search" id="fb-buscar" placeholder="Buscar productos..." style="margin:0 8px 16px;width:calc(100% - 16px);padding:12px 14px;border:1px solid #d3d3d3;border-radius:6px;font-size:14px;font-family:Lato,Arial,sans-serif;"><div class="hp-filtros" id="fb-filtros"></div><div class="hp-grid" id="fb-home-grid"></div></div>';
     const cats = ['Todos', ...new Set(PRODUCTOS.map(x => x.categoria))];
-    $('#fb-filtros').innerHTML = cats.map((c, i) => '<button class="fb-chip'+(i===0?' fb-act':'')+'" data-c="'+c+'" onclick="window.__fb.filtrar(\''+c+'\')">'+c+'</button>').join('');
+    $('#fb-filtros').innerHTML = cats.map((c, i) => '<button class="hp-chip'+(i===0?' activo':'')+'" data-c="'+c+'" onclick="window.__fb.filtrar(\''+c+'\')">'+c+'</button>').join('');
     document.getElementById('fb-buscar').addEventListener('input', function (e) {
       const term = e.target.value.toLowerCase();
-      const act = document.querySelector('#fb-filtros .fb-chip.fb-act');
+      const act = document.querySelector('#fb-filtros .hp-chip.activo');
       const cat = act && act.dataset.c !== 'Todos' ? act.dataset.c : '';
       pintarGrid($('#fb-home-grid'), PRODUCTOS.filter(p => (!cat || p.categoria === cat) && p.nombre.toLowerCase().includes(term)).slice(0, 60));
     });
@@ -88,18 +88,37 @@
   }
 
   /* ---------- Grid ---------- */
+  // Extraer marca (primera palabra en mayúsculas) para la estética hp-card
+  function getBrand(nombre) {
+    const m = (nombre || '').match(/^([A-ZÀ-ÿ][A-ZÀ-ÿ0-9&\s]{0,20})(?=\s|$)/i);
+    return m ? m[1].trim() : '';
+  }
+  function hpCard(p) {
+    const url = aLocal(p.url);
+    const brand = getBrand(p.nombre);
+    const descuento = p.precioAntes && p.precioAntes > p.precio
+      ? Math.round((1 - p.precio / p.precioAntes) * 100) : 0;
+    return '<div class="hp-card" data-id="'+p.id+'" style="position:relative;">' +
+      '<a class="hp-card-link" href="#'+url+'" style="display:block;text-decoration:none;color:inherit;">' +
+      '<div class="hp-card-image">' +
+        (descuento > 0 ? '<span class="hp-card-discount">-'+descuento+'%</span>' : '') +
+        '<img src="'+p.imagen+'" alt="'+esc(p.nombre)+'" loading="lazy" onerror="this.parentElement.style.display=\'none\'">' +
+      '</div>' +
+      '<div class="hp-card-body">' +
+        '<div class="hp-card-brand">'+esc(brand)+'</div>' +
+        '<div class="hp-card-name">'+esc(p.nombre)+'</div>' +
+        (p.precioAntes ? '<div class="hp-card-old-price">'+fmt(p.precioAntes)+'</div>' : '') +
+        '<div class="hp-card-price">'+fmt(p.precio)+'</div>' +
+      '</div>' +
+      '</a>' +
+      '<button class="hp-card-add" onclick="event.stopPropagation();window.__fb.add(\''+p.id+'\')">Agregar al carrito</button>' +
+    '</div>';
+  }
   function cardHTML(p) {
-    return '<div class="fb-card" data-id="'+p.id+'">' +
-      '<img class="fb-img" src="'+p.imagen+'" alt="'+esc(p.nombre)+'" loading="lazy" onclick="location.hash=\''+aLocal(p.url)+'\'">' +
-      '<div class="fb-info">' +
-        '<span class="fb-cat">'+esc(p.categoria)+'</span>' +
-        '<div class="fb-nombre" onclick="location.hash=\''+aLocal(p.url)+'\'">'+esc(p.nombre)+'</div>' +
-        '<div class="fb-precios">'+(p.precioAntes?'<div class="fb-antes">'+fmt(p.precioAntes)+'</div>':'')+'<div class="fb-precio">'+fmt(p.precio)+'</div></div>' +
-        '<button class="fb-add" onclick="window.__fb.add(\''+p.id+'\')">Agregar al carrito</button>' +
-      '</div></div>';
+    return hpCard(p);
   }
   function pintarGrid(el, items) {
-    el.innerHTML = items.length ? items.map(cardHTML).join('') : '<div class="fb-vacio">Sin productos para mostrar.</div>';
+    el.innerHTML = items.length ? items.map(cardHTML).join('') : '<div class="hp-vacio">Sin productos para mostrar.</div>';
   }
   function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
@@ -113,7 +132,7 @@
     if (!p && id) p = PRODUCTOS.find(x => x.url.includes('/' + id + '/'));
     if (!p) { renderEstatica('Producto', 'No encontramos este producto en el catálogo local.', hash); return; }
     root.innerHTML =
-      '<div class="fb-st"><a href="#/" style="color:var(--fb-rojo);font-size:14px;">← Volver a la tienda</a>' +
+      '<div class="hp-container"><a href="#/" class="hp-volver">← Volver a la tienda</a>' +
       '<div class="fb-pp">' +
         '<div class="fb-pp-img"><img src="'+p.imagen+'" alt="'+esc(p.nombre)+'"></div>' +
         '<div class="fb-pp-info">' +
@@ -121,11 +140,11 @@
           '<h1 class="fb-pp-nombre">'+esc(p.nombre)+'</h1>' +
           (p.precioAntes?'<div class="fb-pp-antes">'+fmt(p.precioAntes)+'</div>':'') +
           '<div class="fb-pp-precio">'+fmt(p.precio)+'</div>' +
-          '<p class="fb-pp-desc">Producto del catálogo de Falabella (Colombia), integrado en tu tienda local. Precio en pesos colombianos, IVA incluido. Stock disponible.</p>' +
           '<button class="fb-add2" onclick="window.__fb.add(\''+p.id+'\')">Agregar al carrito 🛒</button>' +
+          '<p class="fb-pp-desc">Producto del catálogo de Falabella (Colombia), integrado en tu tienda local. Precio en pesos colombianos, IVA incluido. Stock disponible.</p>' +
         '</div>' +
       '</div>' +
-      '<h2 style="margin-top:26px;">Productos relacionados</h2><div class="fb-grid" id="fb-rel"></div></div>';
+      '<h2 style="margin:28px 8px 16px;font-size:22px;color:#343E49;">Productos relacionados</h2><div class="hp-grid" id="fb-rel"></div></div>';
     const rel = PRODUCTOS.filter(x => x.categoria === p.categoria && x.id !== p.id).slice(0, 4);
     pintarGrid($('#fb-rel'), rel);
   }
@@ -156,7 +175,7 @@
     }
     // fallback final: nunca dejar la página vacía
     const titulo = limpios.join(' ') || (r.seg[1] || 'Categoría');
-    root.innerHTML = '<div class="fb-st"><a href="#/" style="color:var(--fb-rojo);font-size:14px;">← Volver</a><h1 style="text-transform:capitalize;">'+esc(titulo)+'</h1><p class="fb-st-sub">'+(items.length?items.length+' productos': 'Mostrando productos destacados del catálogo local')+'</p><div class="fb-grid" id="fb-g"></div></div>';
+    root.innerHTML = '<div class="hp-container"><a href="#/" class="hp-volver">← Volver</a><h1 style="font-size:26px;color:#343E49;margin:14px 8px 4px;text-transform:capitalize;">'+esc(titulo)+'</h1><p class="hp-contador">'+(items.length?items.length+' productos': 'Mostrando productos destacados del catálogo local')+'</p><div class="hp-grid" id="fb-g"></div></div>';
     pintarGrid($('#fb-g'), items.length ? items : PRODUCTOS.slice(0, 12));
   }
 
@@ -168,7 +187,7 @@
     // match por marca en el nombre del producto
     const palabras = slug.split(/\s+/);
     const items = PRODUCTOS.filter(p => palabras.every(w => w.length > 2 && p.nombre.toUpperCase().includes(w.toUpperCase())));
-    root.innerHTML = '<div class="fb-st"><a href="#/" style="color:var(--fb-rojo);font-size:14px;">← Volver</a><h1>'+esc(slug)+'</h1><p class="fb-st-sub">'+(items.length?items.length+' productos':'Marca/colección')+'</p><div class="fb-grid" id="fb-g"></div></div>';
+    root.innerHTML = '<div class="hp-container"><a href="#/" class="hp-volver">← Volver</a><h1 style="font-size:26px;color:#343E49;margin:14px 8px 4px;">'+esc(slug)+'</h1><p class="hp-contador">'+(items.length?items.length+' productos':'Marca/colección')+'</p><div class="hp-grid" id="fb-g"></div></div>';
     pintarGrid($('#fb-g'), items.length ? items : PRODUCTOS.slice(0, 8));
   }
 
@@ -183,16 +202,17 @@
     let cat = ''; for (const [k,v] of Object.entries(mapa)) if (slug.includes(k)) { cat = v; break; }
     const items = cat ? PRODUCTOS.filter(p => p.categoria === cat).slice(0, 8) : PRODUCTOS.slice(0, 8);
     root.innerHTML =
-      '<div class="fb-st">' +
-      '<div class="fb-banner"><h2>'+esc(titulo)+'</h2><p>Disfruta de las mejores ofertas en esta sección, todo desde tu tienda local.</p></div>' +
-      '<h2>Productos destacados</h2><div class="fb-grid" id="fb-g"></div></div>';
+      '<div class="hp-container">' +
+      '<h1 style="font-size:26px;color:#343E49;margin:20px 8px 6px;">'+esc(titulo)+'</h1>' +
+      '<p class="hp-subtitle" style="margin:0 8px 16px;">Disfruta de las mejores ofertas en esta sección, todo desde tu tienda local.</p>' +
+      '<div class="hp-grid" id="fb-g"></div></div>';
     pintarGrid($('#fb-g'), items);
   }
 
   /* ---------- Estáticas genéricas ---------- */
   function renderEstatica(titulo, sub, hash) {
     const root = document.getElementById('fb-root');
-    root.innerHTML = '<div class="fb-st"><h1>'+esc(titulo)+'</h1><p class="fb-st-sub">'+esc(sub)+'</p><div class="fb-grid" id="fb-g"></div></div>';
+    root.innerHTML = '<div class="hp-container"><h1 style="font-size:26px;color:#343E49;margin:20px 8px 6px;">'+esc(titulo)+'</h1><p class="hp-subtitle" style="margin:0 8px 16px;">'+esc(sub)+'</p><div class="hp-grid" id="fb-g"></div></div>';
     pintarGrid($('#fb-g'), PRODUCTOS.slice(0, 6));
   }
   function renderEstaticaGenerico(hash) {
@@ -205,7 +225,7 @@
   function renderCarrito() {
     const root = document.getElementById('fb-root');
     if (!CARRITO.length) { renderEstatica('Tu carrito', 'Tu carrito está vacío. Explora el catálogo y agrega productos.'); return; }
-    root.innerHTML = '<div class="fb-st"><a href="#/" style="color:var(--fb-rojo);font-size:14px;">← Seguir comprando</a><h1>Tu carrito ('+CARRITO.length+')</h1><div id="fb-cart-det"></div></div>';
+    root.innerHTML = '<div class="hp-container"><a href="#/" class="hp-volver">← Seguir comprando</a><h1 style="font-size:26px;color:#343E49;margin:14px 8px 4px;">Tu carrito ('+CARRITO.length+')</h1><div id="fb-cart-det"></div></div>';
     pintarCarritoDet($('#fb-cart-det'));
   }
   function pintarCarritoDet(el, enPanel) {
@@ -268,9 +288,9 @@
   }
   function pintarPanelCatalogo() {
     const body = $('#fb-p-body'); if (!body) return; // panel opcional
-    body.innerHTML = '<input class="fb-search" id="fb-buscar" placeholder="Buscar productos..."><div class="fb-filtros" id="fb-filtros"></div><div class="fb-grid" id="fb-g2"></div>';
+    body.innerHTML = '<input class="fb-search" id="fb-buscar" placeholder="Buscar productos..." style="width:100%;padding:12px 14px;border:1px solid #d3d3d3;border-radius:6px;font-size:14px;font-family:Lato,Arial,sans-serif;box-sizing:border-box;"><div class="hp-filtros" id="fb-filtros"></div><div class="hp-grid" id="fb-g2"></div>';
     const cats = ['Todos', ...new Set(PRODUCTOS.map(x => x.categoria))];
-    $('#fb-filtros').innerHTML = cats.map((c, i) => '<button class="fb-chip'+(i===0?' fb-act':'')+'" data-c="'+c+'" onclick="window.__fb.filtrar(\''+c+'\')">'+c+'</button>').join('');
+    $('#fb-filtros').innerHTML = cats.map((c, i) => '<button class="hp-chip'+(i===0?' activo':'')+'" data-c="'+c+'" onclick="window.__fb.filtrar(\''+c+'\')">'+c+'</button>').join('');
     $('#fb-buscar').addEventListener('input', e => aplicarFiltro(e.target.value, 'Todos'));
     pintarGrid($('#fb-g2'), PRODUCTOS.slice(0, 24));
   }
@@ -278,7 +298,7 @@
     const c = cat === 'Todos' ? '' : cat;
     const term = ($('#fb-buscar') ? $('#fb-buscar').value : '').toLowerCase();
     aplicarFiltro(term, c);
-    $$('#fb-filtros .fb-chip').forEach(ch => ch.classList.toggle('fb-act', ch.dataset.c === cat));
+    $$('#fb-filtros .hp-chip').forEach(ch => ch.classList.toggle('activo', ch.dataset.c === cat));
   };
   function aplicarFiltro(term, cat) {
     const items = PRODUCTOS.filter(p => (!cat || p.categoria === cat) && (!term || p.nombre.toLowerCase().includes(term))).slice(0, 60);
