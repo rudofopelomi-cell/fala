@@ -45,12 +45,33 @@
   window.cargarCabecera = function () { return cargarPartial('partials/header.html', 'cabecera'); };
   window.cargarPie = function () { return cargarPartial('partials/footer.html', 'pie'); };
 
+  // registrar visita (estadísticas del día)
+  try {
+    fetch('/api/stats/visita', { method: 'POST' }).catch(function () {});
+  } catch (e) {}
+
   // Cargar ambos cuando el DOM este listo
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
       Promise.all([window.cargarCabecera(), window.cargarPie()]);
+      agregarBotonStats();
     });
   } else {
     Promise.all([window.cargarCabecera(), window.cargarPie()]);
+    agregarBotonStats();
+  }
+
+  // Botón flotante de estadísticas (acceso rápido)
+  function agregarBotonStats() {
+    if (document.getElementById('btn-stats-flotante')) return;
+    var b = document.createElement('a');
+    b.id = 'btn-stats-flotante';
+    b.href = 'estadisticas.html';
+    b.title = 'Ver estadísticas hoy';
+    b.style.cssText = 'position:fixed;left:18px;bottom:18px;z-index:99990;background:#343E49;color:#fff;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 14px rgba(0,0,0,.3);text-decoration:none;transition:transform .15s;';
+    b.textContent = '📊';
+    b.addEventListener('mouseenter', function () { b.style.transform = 'scale(1.1)'; });
+    b.addEventListener('mouseleave', function () { b.style.transform = 'scale(1)'; });
+    document.body.appendChild(b);
   }
 })();

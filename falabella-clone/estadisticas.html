@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es-CO">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estadísticas | Falabella.com</title>
+  <link rel="stylesheet" href="css/pages.css">
+  <link rel="stylesheet" href="css/productos.css">
+  <link rel="stylesheet" href="css/carrito-checkout.css">
+  <style>
+    .stats-wrap { max-width: 820px; margin: 0 auto; font-family: Lato, Arial, sans-serif; }
+    .stats-banner {
+      background: linear-gradient(120deg, #AAD500, #7EA300);
+      color: #fff; border-radius: 10px; padding: 26px 24px; margin-bottom: 22px;
+    }
+    .stats-banner h1 { font-size: 24px; margin: 0 0 4px; }
+    .stats-banner p { margin: 0; opacity: .92; font-size: 14px; }
+    .stats-tools { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+    .stats-btn {
+      padding: 10px 18px; border-radius: 6px; font-weight: 700; cursor: pointer;
+      font-size: 14px; border: none; font-family: Lato, Arial, sans-serif; transition: background .15s;
+    }
+    .btn-refresh { background: #AAD500; color: #fff; }
+    .btn-refresh:hover { background: #7EA300; }
+    .btn-mapa { background: #fff; color: #7EA300; border: 2px solid #AAD500; }
+    .btn-mapa:hover { background: #AAD500; color: #fff; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+    .stat-card {
+      background: #fff; border: 1px solid #EEE; border-radius: 10px; padding: 20px;
+      text-align: center; transition: box-shadow .15s, transform .15s;
+    }
+    .stat-card:hover { box-shadow: 0 6px 18px rgba(0,0,0,.1); transform: translateY(-2px); }
+    .stat-card .stat-icon { font-size: 34px; }
+    .stat-card .stat-num { font-size: 40px; font-weight: 800; color: #343E49; margin: 8px 0 2px; }
+    .stat-card .stat-label { font-size: 14px; color: #68717D; font-weight: 600; }
+    .stat-card.verde .stat-num { color: #7EA300; }
+    .stat-card.rojo .stat-num { color: #EB0045; }
+    .metodos-list { background: #fff; border: 1px solid #EEE; border-radius: 10px; padding: 18px; margin-top: 18px; }
+    .metodos-list h3 { margin: 0 0 12px; color: #343E49; font-size: 17px; border-bottom: 2px solid #AAD500; padding-bottom: 8px; }
+    .metodo-row { display: flex; justify-content: space-between; padding: 9px 4px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+    .metodo-row:last-child { border-bottom: none; }
+    .metodo-row .m-nombre { color: #343E49; font-weight: 600; }
+    .metodo-row .m-count { color: #7EA300; font-weight: 800; }
+    .stats-vacio { color: #68717D; font-size: 14px; padding: 6px 0; }
+    .stats-fecha { font-size: 13px; color: #8a8a8a; margin-top: 16px; text-align: center; }
+    .stats-total { margin-top: 18px; background: #F7F7F7; border-radius: 10px; padding: 16px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #EEE; }
+    .stats-total .t-label { font-weight: 700; color: #343E49; }
+    .stats-total .t-num { font-size: 28px; font-weight: 800; color: #EB0045; }
+  </style>
+</head>
+<body>
+  <div id="cabecera" class="cabecera"></div>
+
+  <main class="contenido">
+    <div class="stats-wrap">
+      <div class="stats-banner">
+        <h1>📊 Estadísticas de hoy</h1>
+        <p>Actividad del sitio en tiempo real: visitas, pagos iniciados y métodos de pago usados.</p>
+      </div>
+
+      <div class="stats-tools">
+        <button class="stats-btn btn-refresh" id="btn-refresh" onclick="cargarStats()">🔄 Actualizar</button>
+        <a href="tienda.html" class="stats-btn btn-mapa" style="text-decoration:none;">🛒 Ir a la tienda</a>
+      </div>
+
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card"><div class="stat-icon">👁️</div><div class="stat-num">…</div><div class="stat-label">Visitas del día</div></div>
+        <div class="stat-card verde"><div class="stat-icon">💳</div><div class="stat-num">…</div><div class="stat-label">Llegaron al método de pago</div></div>
+        <div class="stat-card rojo"><div class="stat-icon">🧾</div><div class="stat-num">…</div><div class="stat-label">Pedidos enviados hoy</div></div>
+      </div>
+
+      <div class="metodos-list">
+        <h3>💳 Métodos de pago usados hoy</h3>
+        <div id="metodos-detalle"></div>
+      </div>
+
+      <div class="stats-total">
+        <span class="t-label">📦 Total pedidos del día</span>
+        <span class="t-num" id="total-pedidos">0</span>
+      </div>
+
+      <div class="stats-fecha" id="stats-fecha"></div>
+    </div>
+  </main>
+
+  <div id="pie" class="pie"></div>
+
+  <script src="js/include.js"></script>
+  <script>
+    var MAPA_METODOS = { tarjeta: '💳 Tarjeta', pse: '🏦 PSE', contra: '📦 Contra entrega' };
+
+    function cargarStats() {
+      fetch('/api/stats')
+        .then(function (r) { return r.json(); })
+        .then(function (s) {
+          var nums = document.querySelectorAll('.stat-card .stat-num');
+          nums[0].textContent = s.visitas_hoy;
+          nums[1].textContent = s.pago_intentos;
+          nums[2].textContent = s.total_pedidos_hoy;
+          document.getElementById('total-pedidos').textContent = s.total_pedidos_hoy;
+          document.getElementById('stats-fecha').textContent = 'Día: ' + s.fecha;
+
+          var det = document.getElementById('metodos-detalle');
+          var metas = s.metodos_hoy || {};
+          var llaves = Object.keys(metas);
+          if (!llaves.length) {
+            det.innerHTML = '<div class="stats-vacio">Aún no se han registrado métodos de pago hoy.</div>';
+            return;
+          }
+          det.innerHTML = llaves.map(function (k) {
+            return '<div class="metodo-row"><span class="m-nombre">' + (MAPA_METODOS[k] || k) + '</span><span class="m-count">' + metas[k] + '</span></div>';
+          }).join('');
+        })
+        .catch(function () { document.getElementById('metodos-detalle').innerHTML = '<div class="stats-vacio">Error al cargar estadísticas.</div>'; });
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', cargarStats);
+    else cargarStats();
+  </script>
+</body>
+</html>

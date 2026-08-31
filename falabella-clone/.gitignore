@@ -20,3 +20,7 @@ data_raw_productos.json
 
 # Node
 node_modules/
+
+# Datos operativos locales (estadisticas, chat_id de Telegram) — no subir
+falabella-clone/data/
+data/

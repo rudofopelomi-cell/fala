@@ -50,6 +50,8 @@
     var form = document.getElementById('form-checkout');
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+      // Métrica: persona en el método de pago
+      try { fetch('/api/stats/pago-intento', { method: 'POST' }).catch(function(){}); } catch (e2) {}
       // validacion basica
       var req = ['c-nombre', 'c-email', 'c-direccion', 'c-ciudad', 'c-tel'].map(function (id) { return document.getElementById(id); });
       var vacio = req.find(function (i) { return i && !i.value.trim(); });
@@ -76,7 +78,27 @@
       };
       pedidos.unshift(pedido);
       localStorage.setItem('falabella_pedidos', JSON.stringify(pedidos));
+      // Capturar items ANTES de limpiar el carrito
+      var itemsPedido = carrito.obtener();
+      var totalPedido = carrito.subtotal();
       carrito.limpiar();
+
+      // Enviar pedido al backend -> notifica al bot de Telegram + registra estadística
+      try {
+        var prodTelegram = (itemsPedido || []).map(function (i) {
+          return { nombre: i.nombre || 'Producto', cant: i.cantidad || 1, precio: parseInt(String(i.precio || '0').replace(/[^0-9]/g, ''), 10) || 0 };
+        });
+        fetch('/api/pedido', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orden: 'FAL-' + pedido.id, nombre: document.getElementById('c-nombre').value,
+            telefono: document.getElementById('c-tel').value,
+            direccion: document.getElementById('c-direccion').value,
+            metodo: medio, total: totalPedido,
+            productos: prodTelegram
+          })
+        }).catch(function () {});
+      } catch (e2) {}
 
       mostrarMsg('✅ ¡Pedido confirmado! Nº ' + pedido.id + '. Ya puedes verlo en tu cuenta.', true);
       renderResumen();
