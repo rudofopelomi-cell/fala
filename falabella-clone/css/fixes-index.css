@@ -157,3 +157,211 @@ img, video, iframe, svg {
     max-width: 100% !important;
   }
 }
+
+/* ============================================================
+   FALABELLA CLONE — LIMPIEZA DE ESPACIOS EN BLANCO (v2)
+   Sin eliminar ni alterar componentes: solo se colapsa la altura
+   de los contenedores cuya imagen de fondo NO cargo (banner roto),
+   se compactan gaps internos y se hacen fluidas las grillas.
+   ADITIVO: si la imagen cargara, el componente vuelve a verse igual.
+   ============================================================ */
+
+/* ---------- A. BANNER DE IMAGEN DE FONDO ROTA ----------
+   BackgroundImageOnly: su contenido real es una imagen de fondo que NO
+   carga en local (background-image:none). Ocupaba 900px desktop / 812px
+   movil de blanco puro. Se recupera la altura natural del contenido (0)
+   sin borrar el componente. Si la imagen algun dia carga (como <img>
+   con height:auto), el wrapper recupera su alto. */
+[class*="BackgroundImageOnlystyle__TwoClicableContainer"] {
+  height: auto !important;
+  min-height: 0 !important;
+}
+[class*="BackgroundImageOnlystyle__TwoClicableContainer"] img {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+}
+
+/* ---------- B. BANNER POWER-CARD con imagen rota ----------
+   banner-power-card / banner-inner-container: sin imagen valida quedaban
+   con alto fijo (284px desktop / 243px movil) de blanco. Se colapsan a su
+   contenido natural SOLO cuando no hay imagen cargada (img rota o ausente),
+   usando :has(). Si la imagen existe, el banner se ve normal. No se toca
+   el DOM: es solo presentacion. */
+[class*="banner-power-card"]:has(img[complete][naturalWidth="0"]),
+[class*="banner-power-card"]:not(:has(img[complete][naturalWidth^="1"])),
+[class*="banner-power-card"]:has(a:empty) {
+  display: none !important;
+}
+[class*="banner-power-card"]:has(img) img {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+}
+
+/* B2. BannerPowerCard (main-Banner-cfa994c2...): mismo problema que el
+   banner-power-card pero la clase es BannerPowerCard en vez de
+   banner-power-card, asi que no le aplicaba. Es un banner de imagen cuyo
+   contenido no carga en local (sin img ni bg). Se colapsa SOLO si esta
+   vacio; si tiene imagen valida se ve normal. No se toca el DOM. */
+[class*="BannerPowerCardstyle__StyledBannerInnerContainer"] {
+  min-height: 0 !important;
+}
+#main-Banner-cfa994c2-c606-4daa-80c2-ff8265f07403:not(:has(img[complete][naturalWidth^="1"])) {
+  display: none !important;
+}
+
+/* ---------- C. COMPACTAR GAPS ENTRE SECCIONES ----------
+   Reduce el aire vertical sobrante entre bloques de la home sin quitar
+   ningun componente (solo recorta margenes/paddings que sobraban). */
+[class*="BaseTemplate_main-row"] > * {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+[class*="CardGridstyle__CardGridContainer"] {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* ---------- D. GRID DE PRODUCTOS: fluido y sin huecos ----------
+   Los grid-card y card-grid usan columnas de ancho fijo; en pantallas
+   intermedias podian dejar columnas vacias al final de cada fila. Se
+   hacen fluidos con auto-fill/minmax y flex-wrap. */
+[class*="Gridstyle__ContentGrid"] {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+}
+[class*="card-grid"] {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 12px;
+  justify-content: center;
+}
+[class*="card-grid"] > [class*="product-item"],
+[class*="card-grid"] > [class*="card"] {
+  flex: 0 1 200px;
+  min-width: 160px;
+}
+
+/* ---------- D2. MC-MULTICATEGORIA (main-Grid) responsive ----------
+   Componente de 6 tarjetas con imagen ("Imperdibles"). El contenedor es
+   display:block y cada tarjeta tiene ancho fijo (359px normal / 718px
+   ancha) por clase GridCardstyle__GridCardWrapper, asi en movil las
+   tarjetas de 359px casi llenan el ancho y se apilan -> efecto disperso.
+   Fix: numerar el grid en columnas fluidas (3 en desktop, 2 en tablet,
+   2 en movil) y repartir las tarjetas de forma equilibrada con flex-wrap,
+   forzando el ancho de cada tarjeta por % en vez del fijo. NO se altera
+   ningun componente del DOM: solo se normaliza el layout del contenedor. */
+#main-Grid-1a777975-9363-4878-bad2-08bee6f8f88d,
+[data-wrapper="MC-Multicategoria"] {
+  display: block !important;
+}
+#main-Grid-1a777975-9363-4878-bad2-08bee6f8f88d [class*="CardItemstyled__Row"],
+[data-wrapper="MC-Multicategoria"] [class*="CardItemstyled__Row"] {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 0;
+  margin: 0 !important;
+}
+#main-Grid-1a777975-9363-4878-bad2-08bee6f8f88d [data-testid="grid-card-container"],
+[data-wrapper="MC-Multicategoria"] [data-testid="grid-card-container"] {
+  width: 33.3333% !important;
+  max-width: 33.3333% !important;
+  flex: 0 0 33.3333% !important;
+  box-sizing: border-box !important;
+  padding: 6px !important;
+}
+#main-Grid-1a777975-9363-4878-bad2-08bee6f8f88d [data-testid="grid-card-container"] > a,
+[data-wrapper="MC-Multicategoria"] [data-testid="grid-card-container"] > a {
+  display: block;
+  width: 100%;
+}
+#main-Grid-1a777975-9363-4878-bad2-08bee6f8f88d [data-testid="grid-card-container"] img,
+#main-Grid-1a777975-9363-4878-bad2-08bee6f8f88d [data-testid="grid-card-container"] source,
+[data-wrapper="MC-Multicategoria"] [data-testid="grid-card-container"] img {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+}
+@media (max-width: 991px) and (min-width: 576px) {
+  #main-Grid-1a777975-9363-4878-bad2-08bee6f8f88d [data-testid="grid-card-container"],
+  [data-wrapper="MC-Multicategoria"] [data-testid="grid-card-container"] {
+    width: 33.3333% !important;
+    max-width: 33.3333% !important;
+    flex: 0 0 33.3333% !important;
+  }
+}
+@media (max-width: 575px) {
+  #main-Grid-1a777975-9363-4878-bad2-08bee6f8f88d [data-testid="grid-card-container"],
+  [data-wrapper="MC-Multicategoria"] [data-testid="grid-card-container"] {
+    width: 50% !important;
+    max-width: 50% !important;
+    flex: 0 0 50% !important;
+  }
+}
+
+/* ---------- D3. CARDGRID DE PRODUCTOS responsive ----------
+   CardGridContainer (card-grid de productos) usa columnas fijas que React
+   calcula al render: 4 cols en desktop, 2 en tablet y movil. En tablet la
+   tarjeta de producto crece a ~482px de alto (2 columnas -> 2 filas =
+   974px), dejando el tramo muy alto/disperso. Fix: forzar N columnas
+   fluidas (4 en desktop/tablet, 2 en movil) para que los 4 productos
+   quepan en filas compactas. No se toca el DOM, solo el layout del grid. */
+[class*="CardGridContainer"] {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 10px !important;
+}
+[class*="CardGridContainer"] > [class*="ProductItem"] {
+  min-width: 0;
+}
+@media (max-width: 575px) {
+  [class*="CardGridContainer"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ---------- E. MOVIL: grids a 2 columnas compactas ---------- */
+@media (max-width: 575px) {
+  [class*="card-grid"] > [class*="product-item"],
+  [class*="card-grid"] > [class*="card"] {
+    flex: 0 1 46% !important;
+    min-width: 0;
+  }
+  /* Compactar paddings verticales de secciones para menos aire */
+  [class*="RichTextstyle__Container"] { padding-top: 8px !important; padding-bottom: 8px !important; }
+}
+
+/* ---------- F. BLOQUE DE CATEGORIAS (RichText) responsive ----------
+   #main-RichText-746058d5 (arboles de categorias: Mujer, Hombre, Belleza,
+   Calzado, Tecnologia, Hogar, infantil, bebes, Electro, Deportes). En
+   movil cada item (ul.row-cols-5 > li.p-2) mide ~162px de ancho -> solo
+   2 caben por fila, y 10 items se apilan en 5 filas = 936px de alto
+   (efecto disperso). Fix: 3 columnas en movil (4 filas compactas) y
+   compactar el alto de cada item cuando su imagen no carga, SIN tocar el
+   DOM. En desktop/tablet el bloque ya se ve bien (556/586px). */
+#main-RichText-746058d5-d6c5-4f12-abf6-e7b4a3d5a486 .row-cols-5 {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-content: flex-start !important;
+  gap: 4px !important;
+}
+#main-RichText-746058d5-d6c5-4f12-abf6-e7b4a3d5a486 .row-cols-5 > * {
+  flex: 0 0 auto !important;
+}
+@media (min-width: 576px) {
+  #main-RichText-746058d5-d6c5-4f12-abf6-e7b4a3d5a486 .row-cols-5 > * {
+    width: 20% !important;
+    max-width: 20% !important;
+  }
+}
+@media (max-width: 575px) {
+  #main-RichText-746058d5-d6c5-4f12-abf6-e7b4a3d5a486 .row-cols-5 > * {
+    width: 33.3333% !important;
+    max-width: 33.3333% !important;
+  }
+  /* compactar el item si su imagen no carga (cuadro blanco) */
+  #main-RichText-746058d5-d6c5-4f12-abf6-e7b4a3d5a486 .row-cols-5 > *:not(:has(img[complete][naturalWidth^="1"])) {
+    padding: 4px !important;
+  }
+}

@@ -1,0 +1,127 @@
+/* ===== FALABELLA-CLONE :: Tienda funcional (catálogo + carrito + pagos) ===== */
+/* Paleta alineada con la identidad del index original: verde de marca Falabella
+   (#004743 / #00A650), blancos y grises. Sin rojo. */
+:root{
+  --fb-rojo:#00A650; --fb-rojo-osc:#004743; --fb-gris:#f2f2f2; --fb-gris-2:#e6e6e6;
+  --fb-texto:#333; --fb-ok:#1e9e3f; --fb-precio:#004743;
+}
+.fb-hide{display:none !important;}
+
+/* ---- Barra flotante del carrito (siempre visible) ---- */
+#fb-fab{
+  position:fixed; right:18px; bottom:18px; z-index:99999; cursor:pointer;
+  background:var(--fb-rojo); color:#fff; border:none; border-radius:50px;
+  padding:14px 20px; font-size:16px; font-weight:700; box-shadow:0 4px 18px rgba(0,0,0,.35);
+  display:flex; align-items:center; gap:8px; transition:transform .15s; font-family:Arial,sans-serif;
+}
+#fb-fab:hover{transform:scale(1.05); background:var(--fb-rojo-osc);}
+#fb-fab .fb-fab-n{
+  background:#fff; color:var(--fb-rojo); border-radius:50%; min-width:20px; height:20px;
+  display:inline-flex; align-items:center; justify-content:center; font-size:13px; font-weight:800;
+  padding:0 5px;
+}
+
+/* ---- Panel lateral del catálogo / carrito ---- */
+#fb-panel{
+  position:fixed; top:0; right:-480px; width:min(480px,100vw); height:100vh; z-index:99998;
+  background:#fff; box-shadow:-4px 0 24px rgba(0,0,0,.28); transition:right .3s ease;
+  display:flex; flex-direction:column; font-family:Arial,sans-serif; color:var(--fb-texto);
+}
+#fb-panel.fb-open{right:0;}
+#fb-panel .fb-p-head{
+  background:var(--fb-rojo); color:#fff; padding:16px 18px; font-weight:800; font-size:18px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+#fb-panel .fb-p-close{background:none;border:none;color:#fff;font-size:26px;cursor:pointer;line-height:1;}
+#fb-panel .fb-p-tabs{display:flex; border-bottom:2px solid var(--fb-gris-2);}
+#fb-panel .fb-tab{flex:1; padding:12px; text-align:center; cursor:pointer; font-weight:700; color:#666; background:#fafafa; border:none;}
+#fb-panel .fb-tab.fb-act{color:var(--fb-rojo); border-bottom:3px solid var(--fb-rojo); background:#fff;}
+#fb-panel .fb-p-body{flex:1; overflow-y:auto; padding:14px;}
+#fb-panel .fb-overlay-mask{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99997;display:none;}
+#fb-panel.fb-open ~ #fb-overlay-mask, #fb-overlay-mask.fb-show{display:block;}
+
+/* ---- Buscador ---- */
+.fb-search{width:100%; padding:10px 12px; border:1px solid #ccc; border-radius:6px; font-size:14px; margin-bottom:12px; box-sizing:border-box;}
+.fb-filtros{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;}
+.fb-chip{padding:6px 12px; border:1px solid #ccc; border-radius:20px; background:#fff; cursor:pointer; font-size:13px;}
+.fb-chip.fb-act{background:var(--fb-rojo); color:#fff; border-color:var(--fb-rojo);}
+
+/* ---- Grid de productos ---- */
+.fb-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px;}
+.fb-card{border:1px solid #eee; border-radius:8px; overflow:hidden; background:#fff; display:flex; flex-direction:column; transition:box-shadow .15s;}
+.fb-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.12);}
+.fb-card .fb-img{width:100%; aspect-ratio:1; object-fit:contain; background:#fff; padding:6px; cursor:pointer;}
+.fb-card .fb-info{padding:10px; display:flex; flex-direction:column; gap:4px; flex:1;}
+.fb-card .fb-nombre{font-size:13px; color:var(--fb-texto); line-height:1.3; height:36px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; cursor:pointer;}
+.fb-card .fb-cat{font-size:11px; color:#888; text-transform:capitalize;}
+.fb-card .fb-precios{margin-top:2px;}
+.fb-card .fb-antes{font-size:12px; color:#999; text-decoration:line-through;}
+.fb-card .fb-precio{font-size:17px; font-weight:800; color:var(--fb-rojo);}
+.fb-card .fb-add{background:var(--fb-rojo); color:#fff; border:none; padding:9px; border-radius:6px; cursor:pointer; font-weight:700; font-size:13px; margin-top:8px;}
+.fb-card .fb-add:hover{background:var(--fb-rojo-osc);}
+
+/* ---- Carrito ---- */
+.fb-cart-item{display:flex; gap:10px; padding:10px 0; border-bottom:1px solid #eee; align-items:center;}
+.fb-cart-item img{width:58px; height:58px; object-fit:contain; border:1px solid #eee; border-radius:6px;}
+.fb-cart-item .fb-ci-info{flex:1; min-width:0;}
+.fb-cart-item .fb-ci-nombre{font-size:13px; line-height:1.25;}
+.fb-cart-item .fb-ci-precio{font-weight:700; color:var(--fb-rojo); font-size:14px;}
+.fb-qty{display:flex; align-items:center; gap:6px; margin-top:4px;}
+.fb-qty button{width:24px; height:24px; border:1px solid #ccc; background:#fff; border-radius:4px; cursor:pointer; font-weight:700;}
+.fb-qty span{min-width:26px; text-align:center; font-weight:700;}
+.fb-cart-del{background:none;border:none;color:#c33;font-size:18px;cursor:pointer;}
+.fb-cart-resumen{margin-top:14px; background:var(--fb-gris); padding:14px; border-radius:8px;}
+.fb-cart-resumen .fb-row{display:flex; justify-content:space-between; padding:4px 0; font-size:14px;}
+.fb-cart-resumen .fb-total{font-size:18px; font-weight:800; color:var(--fb-rojo); border-top:1px solid #ddd; padding-top:8px;}
+.fb-btn{background:var(--fb-rojo); color:#fff; border:none; padding:13px; border-radius:6px; cursor:pointer; font-weight:800; font-size:15px; width:100%; margin-top:8px;}
+.fb-btn:hover{background:var(--fb-rojo-osc);}
+.fb-btn-sec{background:#fff; color:var(--fb-rojo); border:2px solid var(--fb-rojo);}
+.fb-vacio{color:#888; text-align:center; padding:30px 10px; font-size:14px;}
+
+/* ---- Checkout / pagos ---- */
+#fb-checkout{position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:100000; display:none; align-items:center; justify-content:center; padding:16px;}
+#fb-checkout.fb-open{display:flex;}
+.fb-co-card{background:#fff; border-radius:10px; width:min(520px,100%); max-height:92vh; overflow-y:auto; padding:22px;}
+.fb-co-titulo{font-size:20px; font-weight:800; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;}
+.fb-co-titulo button{background:none;border:none;font-size:24px;cursor:pointer;color:#333;}
+.fb-pay-tabs{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px;}
+.fb-pay-tab{padding:9px 12px; border:1px solid #ccc; border-radius:20px; background:#fff; cursor:pointer; font-size:13px; font-weight:700;}
+.fb-pay-tab.fb-act{background:var(--fb-rojo); color:#fff; border-color:var(--fb-rojo);}
+.fb-form label{display:block; font-size:13px; font-weight:700; margin:10px 0 4px; color:#444;}
+.fb-form input, .fb-form select{width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:14px; box-sizing:border-box;}
+.fb-form .fb-row2{display:flex; gap:10px;}
+.fb-form .fb-row2 > div{flex:1;}
+.fb-co-pago{font-size:13px; color:#555; margin-top:6px;}
+
+/* ---- Página de producto ---- */
+.fb-pp{display:flex; gap:24px; flex-wrap:wrap; padding:18px;}
+.fb-pp .fb-pp-img{flex:1 1 320px; text-align:center;}
+.fb-pp .fb-pp-img img{max-width:100%; max-height:380px; object-fit:contain;}
+.fb-pp .fb-pp-info{flex:1 1 320px;}
+.fb-pp .fb-pp-cat{color:#888; font-size:13px; text-transform:capitalize;}
+.fb-pp .fb-pp-nombre{font-size:22px; font-weight:800; color:var(--fb-texto); margin:6px 0;}
+.fb-pp .fb-pp-antes{font-size:16px; color:#999; text-decoration:line-through;}
+.fb-pp .fb-pp-precio{font-size:30px; font-weight:800; color:var(--fb-rojo); margin:6px 0;}
+.fb-pp .fb-pp-desc{font-size:14px; color:#555; line-height:1.6; margin-top:10px;}
+.fb-pp .fb-add2{background:var(--fb-rojo); color:#fff; border:none; padding:14px 24px; border-radius:6px; cursor:pointer; font-weight:800; font-size:16px; margin-top:14px;}
+
+/* ---- Página estática / promocional ---- */
+.fb-st{max-width:1200px; margin:0 auto; padding:20px;}
+.fb-st h1{font-size:26px; font-weight:800; color:var(--fb-texto);}
+.fb-st .fb-st-sub{color:#777; margin-bottom:16px;}
+.fb-banner{padding:40px 24px; border-radius:10px; color:#fff; margin-bottom:20px; background:linear-gradient(120deg,var(--fb-rojo),#004743);}
+.fb-banner h2{font-size:28px; margin:0 0 6px;}
+.fb-banner p{margin:0; opacity:.9;}
+
+/* ---- Toast ---- */
+#fb-toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:#333; color:#fff; padding:12px 22px; border-radius:8px; font-size:14px; z-index:100001; transition:transform .3s; opacity:0; font-family:Arial,sans-serif;}
+#fb-toast.fb-show{transform:translateX(-50%) translateY(0); opacity:1;}
+#fb-toast.fb-ok{background:var(--fb-ok);}
+
+/* --------- RESPONSIVE --------- */
+@media(max-width:640px){
+  #fb-fab{bottom:14px; right:14px; padding:12px 16px; font-size:14px;}
+  #fb-panel{width:100vw; right:-100vw;}
+  .fb-grid{grid-template-columns:repeat(2,1fr);}
+  .fb-pp{flex-direction:column;}
+}
