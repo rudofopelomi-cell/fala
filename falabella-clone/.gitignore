@@ -6,13 +6,22 @@ fala_files/
 _fala_files/
 
 # Archivos temporales de trabajo (scraping, diagnostico, generacion)
-_*.js
-_*.mjs
-_shot_*.png
-_diag_*.png
+_*.*
+!_.gitkeep
 *.tmp
 descarga_fallidos.txt
 skus.txt
+
+# Backups y dumps intermedios
+index.backup_*
+index.borrar_*
+router.backup_*
+css/*.backup_*
+productos_raw_dump.json
+eng.traineddata
+_sqlout/
+_sqlout2/
+_sqlout3/
 
 # Datos crudos intermedios del scrape (el producto final es products.json)
 catalogo_real.json

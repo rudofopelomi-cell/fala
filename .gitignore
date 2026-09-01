@@ -1,0 +1,27 @@
+# Repo raiz = proyecto fala (falabella-clone). Todo lo ajeno se ignora aqui.
+
+# Proyectos/scripts de OTROS sitios (no pertenecen al repo fala)
+bundle_*.js
+chunk_*.js
+crt.json
+crt2.json
+b.json
+ins.json
+up.json
+h.txt
+resp.txt
+resp_orders.txt
+v1_branches.json
+pidapues_*
+pidapues-*
+original_home.html
+auditoria-pidapues.md
+_map_out.txt
+audits/
+bugbounty/
+_mapa*.txt
+
+# Notas internas del agente (memoria diaria)
+memory/
+*.md
+!falabella-clone/**.md

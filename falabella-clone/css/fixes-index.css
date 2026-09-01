@@ -365,3 +365,167 @@ img, video, iframe, svg {
     padding: 4px !important;
   }
 }
+
+/* ============================================================
+   SLIDER PRINCIPAL (showcase hero) — FIX COMPLETO
+   El carousel de React no ejecuta su JS en el clon local, así que
+   las slides no se muestran ni rotan. Este CSS + el JS en router.php
+   reconstruyen el comportamiento completo: visibilidad, navegación,
+   indicadores, autoplay y swipe.
+   ============================================================ */
+
+/* --- Contenedor del carousel: posicionamiento --- */
+[data-testid="showcase"] .Carouselstyle__StyledCarousel-core-ui-kit__sc-1cnntgx-0,
+[data-testid="showcase"] div[class*="carousel-v2"] {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* --- Slides: todas apiladas en la misma posición, ocultas salvo activa --- */
+[data-testid="showcase"] .carousel-inner {
+  position: relative !important;
+  width: 100% !important;
+  overflow: hidden !important;
+}
+
+[data-testid="showcase"] .showcase-item,
+[data-testid="showcase"] [data-testid^="showcase-slide"] {
+  position: relative !important;
+  display: none !important;
+  width: 100% !important;
+  float: none !important;
+  margin-right: 0 !important;
+  transition: opacity 0.4s ease !important;
+}
+
+[data-testid="showcase"] .showcase-item.active,
+[data-testid="showcase"] [data-testid^="showcase-slide"].active {
+  display: block !important;
+}
+
+/* --- Imágenes del slider: ocupar todo el ancho, height auto --- */
+[data-testid="showcase"] .showcase-item img,
+[data-testid="showcase"] [data-testid^="showcase-slide"] img {
+  width: 100% !important;
+  height: auto !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+[data-testid="showcase"] .lazyload-wrapper,
+[data-testid="showcase"] .lazyload-placeholder,
+[data-testid="showcase"] .BackgroundImageOnlystyle__BackgroundImageOnlyImage-core-ui-kit__sc-1w8l6j6-2,
+[data-testid="showcase"] .CSImagestyle__Wrapper-core-ui-kit__sc-1tu5wso-0 {
+  width: 100% !important;
+  height: auto !important;
+  background: transparent !important;
+  min-height: 100px !important;
+}
+
+[data-testid="showcase"] .BackgroundImageOnlystyle__TwoClicableContainer-core-ui-kit__sc-1w8l6j6-3 {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 2 !important;
+}
+
+[data-testid="showcase"] .BackgroundImageOnlystyle__MainClickableLink-core-ui-kit__sc-1w8l6j6-4 {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 3 !important;
+}
+
+/* --- Indicadores (dots) --- */
+[data-testid="showcase"] .Wheelndicatorstyle__IndicatorsWrapper-core-ui-kit__sc-1t9jfqs-0 {
+  position: absolute !important;
+  bottom: 12px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  display: flex !important;
+  gap: 8px !important;
+  z-index: 10 !important;
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+[data-testid="showcase"] .Wheelndicatorstyle__Indicator-core-ui-kit__sc-1t9jfqs-1 {
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 50% !important;
+  background: rgba(255,255,255,0.5) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+  cursor: pointer !important;
+  transition: all 0.3s !important;
+  border: none !important;
+}
+
+[data-testid="showcase"] .Wheelndicatorstyle__Indicator-core-ui-kit__sc-1t9jfqs-1.active {
+  background: #FF0033 !important;
+  transform: scale(1.15) !important;
+}
+
+[data-testid="showcase"] .Wheelndicatorstyle__Indicator-core-ui-kit__sc-1t9jfqs-1.hidden {
+  display: none !important;
+}
+
+/* --- Controles prev/next --- */
+[data-testid="showcase"] .carousel-v2-control-prev,
+[data-testid="showcase"] .carousel-v2-control-next {
+  position: absolute !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 20 !important;
+  background: rgba(255,255,255,0.85) !important;
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+  cursor: pointer !important;
+  transition: background 0.2s !important;
+  text-decoration: none !important;
+}
+
+[data-testid="showcase"] .carousel-v2-control-prev:hover,
+[data-testid="showcase"] .carousel-v2-control-next:hover {
+  background: #ffffff !important;
+}
+
+[data-testid="showcase"] .carousel-v2-control-prev {
+  left: 12px !important;
+}
+
+[data-testid="showcase"] .carousel-v2-control-next {
+  right: 12px !important;
+}
+
+[data-testid="showcase"] .carousel-v2-control-prev svg,
+[data-testid="showcase"] .carousel-v2-control-next svg {
+  width: 18px !important;
+  height: auto !important;
+}
+
+/* --- Responsive: ocultar controles en móvil, mostrar swipe --- */
+@media (max-width: 720px) {
+  [data-testid="showcase"] .carousel-v2-control-prev,
+  [data-testid="showcase"] .carousel-v2-control-next {
+    width: 34px !important;
+    height: 34px !important;
+  }
+  [data-testid="showcase"] .carousel-v2-control-prev {
+    left: 8px !important;
+  }
+  [data-testid="showcase"] .carousel-v2-control-next {
+    right: 8px !important;
+  }
+}
+
+/* --- Prevenir que el slider tenga altura 0 --- */
+[data-testid="showcase"] .showcase-item.active .lazyload-wrapper picture {
+  display: block !important;
+}
