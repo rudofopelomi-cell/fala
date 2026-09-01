@@ -489,11 +489,25 @@
   }
 
   /* ---------- CARGA ---------- */
+  // Cache local del catálogo: evita re-descargar los 150 productos en cada visita.
+  // Almacena {ts, productos} y usa la ETag/LM del servidor para revalidar.
+  var CACHE_KEY = 'fb_catalogo_cache_sep2026';
+  function cargarCatalogo() {
+    var guardado = null;
+    try { guardado = JSON.parse(localStorage.getItem(CACHE_KEY)); } catch (e) {}
+    var cacheValido = guardado && Array.isArray(guardado.productos) && guardado.productos.length && (Date.now() - (guardado.ts || 0) < 12 * 3600 * 1000);
+    if (cacheValido) { PRODUCTOS = guardado.productos; return Promise.resolve(true); }
+    return fetch(CATALOGO_URL, { headers: { 'Accept': 'application/json' } })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (data) {
+        PRODUCTOS = data.productos || [];
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), productos: PRODUCTOS })); } catch (e) {}
+        return true;
+      });
+  }
   async function init() {
     try {
-      const res = await fetch(CATALOGO_URL);
-      const data = await res.json();
-      PRODUCTOS = data.productos || [];
+      await cargarCatalogo();
     } catch (e) {
       console.error('No se pudo cargar el catálogo local:', e);
       PRODUCTOS = [];

@@ -69,13 +69,14 @@
 
   // Cargar productos y rellenar
   function cargar() {
-    fetch(JSON_URL)
-      .then(r => r.json())
-      .then(data => {
-        const productos = data.productos || [];
-        if (!productos.length) return;
+    // Cache local: evita re-descargar el catálogo en cada visita
+    const CACHE_KEY = 'fb_home_cache_sep2026';
+    let guardado = null;
+    try { guardado = JSON.parse(localStorage.getItem(CACHE_KEY)); } catch (e) {}
+    const aplicar = (productos) => {
+      if (!productos.length) return;
 
-        // ============ 1. RELLENAR CARD-GRIDS VACÍOS (esqueletos) ============
+      // ============ 1. RELLENAR CARD-GRIDS VACÍOS (esqueletos) ============
         // Buscar los card-grid que tienen las imágenes "lazy-load" no activadas
         // (img sin src válido = esqueleto) y reemplazar su contenido con productos.
         const cardGrids = document.querySelectorAll('[data-testid="card-grid"]');
@@ -176,8 +177,20 @@
           moreBtn.innerHTML = `<a href="/falabella-co/category/todos">Ver todos los productos</a>`;
           lastHp.appendChild(moreBtn);
         }
-      })
-      .catch(err => console.warn('[home-productos] Error cargando productos:', err));
+    };
+    // Usar cache si es reciente, si no, bajar fresco y guardar
+    if (guardado && Array.isArray(guardado.productos) && guardado.productos.length && (Date.now() - (guardado.ts || 0) < 12 * 3600 * 1000)) {
+      aplicar(guardado.productos);
+    } else {
+      fetch(JSON_URL)
+        .then(r => r.json())
+        .then(data => {
+          const productos = data.productos || [];
+          try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), productos })); } catch (e) {}
+          aplicar(productos);
+        })
+        .catch(err => console.warn('[home-productos] Error cargando productos:', err));
+    }
   }
 
   // Esperar a que el DOM esté listo

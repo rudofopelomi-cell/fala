@@ -16,9 +16,20 @@
   }
 
   function cargarProductos() {
+    // Cache local: evita re-descargar el catálogo en cada visita
+    var CACHE_KEY = 'fb_tienda_cache_sep2026';
+    var guardado = null;
+    try { guardado = JSON.parse(localStorage.getItem(CACHE_KEY)); } catch (e) {}
+    if (guardado && Array.isArray(guardado.productos) && guardado.productos.length && (Date.now() - (guardado.ts || 0) < 12 * 3600 * 1000)) {
+      return Promise.resolve(guardado.productos);
+    }
     return fetch('products.json')
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(function (data) { return data.productos || []; });
+      .then(function (data) {
+        var prods = data.productos || [];
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), productos: prods })); } catch (e) {}
+        return prods;
+      });
   }
 
   function dibujarFiltros(productos) {
