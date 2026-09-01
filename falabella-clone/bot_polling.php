@@ -26,6 +26,33 @@ if (TELEGRAM_BOT_TOKEN === '') {
 // variables ficticias para evitar warnings y silenciamos el duplicado de constantes.
 $_SERVER['REQUEST_URI'] = $_SERVER['REQUEST_URI'] ?? '/telegram-polling';
 
+/**
+ * Llamada a la API de Telegram usando cURL con IPv4 forzado.
+ * (file_get_contents falla cuando el DNS devuelve primero IPv6, que es lo que
+ *  ocurre con api.telegram.org. cURL con CURLOPT_IPRESOLVE resuelve el problema.)
+ */
+function telegramRequest($url) {
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => 90, // getUpdates usa long-polling de hasta 50s
+        CURLOPT_IPRESOLVE      => CURL_IPRESOLVE_WHATEVER, // IPv4 si es posible
+        CURLOPT_CONNECTTIMEOUT => 10,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => 0,
+    ]);
+    $raw   = curl_exec($ch);
+    $errno = curl_errno($ch);
+    $error = curl_error($ch);
+    curl_close($ch);
+    if ($raw === false || $errno) {
+        fwrite(STDERR, "[bot] cURL error ($errno): $error\n");
+        return false;
+    }
+    return $raw;
+}
+
 $offset = 0;
 $actual = getmypid();
 echo "[bot] Iniciando polling con getUpdates (PID $actual)...\n";
@@ -35,7 +62,7 @@ echo "[bot] Presiona Ctrl+C para detener.\n\n";
 while (true) {
     $url = 'https://api.telegram.org/bot' . TELEGRAM_BOT_TOKEN
          . '/getUpdates?timeout=50&offset=' . $offset;
-    $raw = @file_get_contents($url);
+    $raw = telegramRequest($url);
     if ($raw === false) {
         fwrite(STDERR, "[bot] Error de red al llamar getUpdates. Reintentando en 3s...\n");
         sleep(3);
