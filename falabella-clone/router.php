@@ -120,11 +120,6 @@ if (preg_match('/\.css$/i', $uri) && !is_file(__DIR__ . $uri)) {
 // 4.5) CSS real (incluye los de fala_files): comprimir con gzip + cache para no re-descargar
 if (preg_match('/\.css$/i', $uri)) {
     $archivo = __DIR__ . $uri;
-    // El CSS del header fue purgado (elimina ~85% de reglas muertas del template real)
-    // manteniendo el render identico. Si falta el purgado, cae al original.
-    if ($archivo === __DIR__ . '/fala_files/3c3c7064f19802a1.css' && is_file(__DIR__ . '/fala_files/header.purged.css')) {
-        $archivo = __DIR__ . '/fala_files/header.purged.css';
-    }
     if (is_file($archivo)) {
         return servirOptimizado(file_get_contents($archivo), 'text/css', 604800);
     }
